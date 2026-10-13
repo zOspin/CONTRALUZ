@@ -1,0 +1,27 @@
+# Dependencias
+node_modules/
+
+# Build
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Locales
+.env
+.env.local
+.env.*.local
+
+# Locales / herramienta del agente
+.opencode/
+Open-Generative-AI/
+
+# Playwright (capturas locales)
+ms-playwright/

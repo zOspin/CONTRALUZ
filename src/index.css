@@ -1,0 +1,286 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --void: 10 10 10;
+    --coal: 22 22 22;
+    --bone: 236 232 225;
+    --ember: 217 161 91;
+    --nav-h: 72px;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /*
+   * Lenis hace scroll sobre `html` (el scrollingElement). Si `body` declara
+   * cualquier `overflow` distinto de visible, el navegador crea un segundo
+   * contenedor de scroll que compite con Lenis y la rueda del mouse deja de
+   * responder — `overflow-x: hidden` se convierte en `overflow: hidden auto`.
+   *
+   * Por eso el clip horizontal va en `html` con clip-path, no con overflow en
+   * `body`. Ver https://github.com/darkroomengineering/lenis — Lenis necesita
+   * que body siga siendo visible para tomar el control del scroll.
+   */
+  html {
+    scroll-behavior: auto;
+    /* Recorta el desbordamiento horizontal sin crear un contenedor de scroll. */
+    overflow-x: clip;
+    /* Lenis gestiona el scroll; el nativo queda desactivado salvo en reduced-motion. */
+  }
+
+  body {
+    @apply bg-void text-bone font-sans antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+  }
+
+  /* Foco visible y consistente. Accesibilidad: nunca quitamos el outline sin reemplazo. */
+  :focus-visible {
+    outline: 2px solid theme('colors.ember');
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  ::selection {
+    background: theme('colors.ember');
+    color: theme('colors.void');
+  }
+
+  /* Barra de scroll discreta, acorde al tema. */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: theme('colors.void');
+  }
+  ::-webkit-scrollbar-thumb {
+    background: theme('colors.slate');
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.emberDim');
+  }
+}
+
+@layer components {
+  /* ---- Tipografía ---- */
+
+  .display {
+    @apply font-display uppercase leading-[0.85] tracking-tight;
+  }
+
+  .label {
+    @apply font-mono text-[10px] uppercase tracking-wide3 text-smoke;
+  }
+
+  /* El detalle en acento ámbar — usado con moderación. */
+  .slash {
+    @apply text-ember;
+  }
+
+  /* ---- Layout ---- */
+
+  .shell {
+    @apply mx-auto w-full max-w-[1600px] px-6 md:px-10 lg:px-16;
+  }
+
+  /* Línea de grilla del plano arquitectónico. */
+  .rule-grid {
+    @apply pointer-events-none absolute inset-0 z-0 mx-auto w-full max-w-[1600px] px-6 md:px-10 lg:px-16;
+  }
+  .rule-grid > span {
+    @apply absolute inset-y-0 w-px bg-white/[0.04];
+  }
+
+  /* ---- Materiales ---- */
+
+  /*
+   * Grano de película. SVG embebido: sin request extra, sin coste de red.
+   *
+   * NOTA DE RENDIMIENTO: el inset negativo tiene que ser pequeno. Con
+   * `inset: -150%` la capa mide 16x el area de la pantalla, y como esta
+   * animada en loop infinito el navegador rasteriza una superficie enorme en
+   * cada frame. Con eso el hilo principal queda saturado: requestAnimationFrame
+   * deja de responder y el scroll con la rueda parece congelado.
+   *
+   * -50% alcanza para el desplazamiento del keyframe (que va hasta -10%) y
+   * mantiene la superficie en 4x la pantalla en vez de 16x.
+   */
+  .film-grain::before {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    will-change: transform;
+    /* 3s por ciclo: a 8s el grano casi no se percibe y solo consume GPU. */
+    animation: grain 3s steps(10) infinite;
+  }
+
+  /* Viñeta suave: cierra los bordes como un objetivo de cámara. */
+  .vignette::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 35%,
+      rgba(0, 0, 0, 0.35) 78%,
+      rgba(0, 0, 0, 0.75) 100%
+    );
+  }
+
+  /* ---- Cursor personalizado (solo escritorio) ---- */
+
+  .cursor-none-fine,
+  .cursor-none-fine * {
+    cursor: none !important;
+  }
+
+  /* Solo oculta el cursor nativo en lg, donde vive el cursor custom
+     (Cursor.jsx renderiza hidden lg:block). */
+  @media (min-width: 1024px) {
+    .cursor-none-lg,
+    .cursor-none-lg * {
+      cursor: none !important;
+    }
+  }
+
+  /* ---- Utilidades ---- */
+
+  /* Blanco y negro de alto contraste, pero legible sobre fondo oscuro.
+     brightness(0.92) en vez de algo mas bajo: con el degradado inferior encima,
+     bajar mas dejaba las fotos casi invisibles. */
+  .img-bw {
+    filter: grayscale(100%) contrast(1.08) brightness(0.92);
+  }
+
+  /* Texto que se revela con máscara: el contenedor recorta, el hijo entra. */
+  .mask-line {
+    @apply overflow-hidden;
+  }
+  .mask-line > * {
+    @apply block will-change-transform;
+  }
+
+  /* ---- SplitText (GSAP) ----
+     SplitText con `mask:'lines'` ya envuelve cada línea en un div con
+     overflow:hidden. Estas clases son para el caso sin máscara (words/chars),
+     donde el recorte lo pone el contenedor .mask-line. */
+  .split-char,
+  .split-word {
+    display: inline-block;
+    will-change: transform, opacity, filter;
+  }
+
+  .split-line {
+    will-change: transform;
+  }
+
+  /* La fuente debe estar cargada antes de medir líneas: sin esto, SplitText
+     parte el texto con la métrica de la fallback y las líneas quedan mal. */
+  .fonts-ready .split-line {
+    visibility: inherit;
+  }
+}
+
+@layer utilities {
+  .text-shadow-cine {
+    text-shadow: 0 2px 30px rgba(0, 0, 0, 0.7);
+  }
+  .glow-ember {
+    box-shadow: 0 0 60px -12px rgba(217, 161, 91, 0.45);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@keyframes grain {
+  0% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-5%, -5%);
+  }
+  20% {
+    transform: translate(-10%, 5%);
+  }
+  30% {
+    transform: translate(5%, -10%);
+  }
+  40% {
+    transform: translate(-5%, 10%);
+  }
+  50% {
+    transform: translate(-10%, 10%);
+  }
+  60% {
+    transform: translate(10%, 5%);
+  }
+  70% {
+    transform: translate(5%, -5%);
+  }
+  80% {
+    transform: translate(-5%, 5%);
+  }
+  90% {
+    transform: translate(10%, 0);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes scrollHint {
+  0% {
+    transform: translateY(-100%);
+  }
+  60%,
+  100% {
+    transform: translateY(250%);
+  }
+}
+
+/* El "haz de luz" (.beam / beam-sweep) se elimino: el preloader quedo con
+   solo la palabra y la barra de progreso se removio. Si vuelve a hacer
+   falta, el keyframe era un translateX de -120% a 320% con skewX(-12deg)
+   sobre un gradiente lineal al 45% de ancho. */
+
+/* ==========================================================================
+   PREFERS-REDUCED-MOTION
+   Paramos animaciones looping (grano, cursor) y dejamos el contenido
+   siempre visible y legible. La información nunca depende de la animación.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .film-grain::before {
+    animation: none;
+    opacity: 0.03;
+  }
+
+  /* El cursor del SO vuelve a ser visible: el personalizado es un adorno. */
+  .cursor-none-fine,
+  .cursor-none-fine * {
+    cursor: auto !important;
+  }
+}
