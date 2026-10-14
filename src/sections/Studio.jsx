@@ -2,12 +2,13 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import SectionHeading from '../components/SectionHeading';
 import Stat from '../components/Stat';
-import { useReducedMotion } from '../hooks/useMedia';
+import { useReducedMotion, useCoarse } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
 
 export default function Studio() {
   const root = useRef(null);
   const reduced = useReducedMotion();
+  const coarse = useCoarse();
   const { lang } = useLang();
   const t = UI[lang];
 
@@ -36,19 +37,19 @@ export default function Studio() {
 
     const ctx = gsap.context(() => {
       gsap.from('[data-bio]', {
-        y: 80,
+        y: coarse ? 36 : 80,
         opacity: 0,
         filter: 'blur(10px)',
-        duration: 2.2,
+        duration: coarse ? 1.2 : 2.2,
         stagger: 0.16,
         ease: 'expo.out',
         scrollTrigger: { trigger: el, start: 'top 82%', once: true },
       });
 
       gsap.from('[data-principio]', {
-        y: 60,
+        y: coarse ? 30 : 60,
         opacity: 0,
-        duration: 2,
+        duration: coarse ? 1.1 : 2,
         stagger: 0.12,
         ease: 'expo.out',
         scrollTrigger: { trigger: '[data-filosofia]', start: 'top 86%', once: true },
@@ -73,7 +74,7 @@ export default function Studio() {
     }, root);
 
     return () => ctx.revert();
-  }, [reduced]);
+  }, [reduced, coarse]);
 
   return (
     <section ref={root} id="estudio" className="relative scroll-mt-24 py-24 md:py-36">

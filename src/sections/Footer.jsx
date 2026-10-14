@@ -90,11 +90,11 @@ export default function Footer({ scrollTo, lenisRef }) {
             </div>
           </div>
 
-          <nav data-footer-reveal aria-label={t.nav} className="flex gap-8">
-            <a href="#contacto" onClick={(e) => go(e, 'contacto')} className="label transition-colors hover:text-ember" data-cursor="hover">
+          <nav data-footer-reveal aria-label={t.nav} className="flex items-center gap-8">
+            <a href="#contacto" onClick={(e) => go(e, 'contacto')} className="label inline-flex min-h-[44px] items-center transition-colors hover:text-ember" data-cursor="hover">
               {t.contact}
             </a>
-            <a href="#estudio" onClick={(e) => go(e, 'estudio')} className="label transition-colors hover:text-ember" data-cursor="hover">
+            <a href="#estudio" onClick={(e) => go(e, 'estudio')} className="label inline-flex min-h-[44px] items-center transition-colors hover:text-ember" data-cursor="hover">
               {t.studio}
             </a>
           </nav>
@@ -103,7 +103,7 @@ export default function Footer({ scrollTo, lenisRef }) {
         <div className="mt-16 overflow-hidden md:mt-20">
           <p
             data-footer-reveal
-            className="display select-none text-[19vw] leading-[0.8] text-bone/[0.07] sm:text-[15vw] md:text-[11vw]"
+            className="display select-none text-[19vw] leading-[0.8] text-bone/[0.07] sm:text-[15vw] md:text-[11vw] 3xl:text-[12rem]"
             aria-hidden="true"
           >
             CONTRA<span className="slash">/</span>LUZ

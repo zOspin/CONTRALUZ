@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap, revealImage, parallax } from '../hooks/useAnimations';
 import { useReducedMotion, useFinePointer } from '../hooks/useMedia';
+import SmartImage from './SmartImage';
 
 /**
  * Imagen que se revela con clip-path al entrar al viewport, y que lleva un
@@ -72,13 +73,12 @@ export default function ProjectImage({
       onMouseLeave={() => setHovering(false)}
       onMouseMove={onMove}
     >
-      <img
-        ref={img}
+      <SmartImage
+        imgRef={img}
         data-parallax
-        src={src}
+        base={src}
         alt={alt}
-        loading={priority ? 'eager' : 'lazy'}
-        decoding="async"
+        eager={priority}
         onError={() => setFailed(true)}
         className={`h-[114%] w-full -translate-y-[6%] object-cover ${
           color

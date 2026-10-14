@@ -224,7 +224,7 @@ export default function SidePanel({ scrollTo, lenisRef }) {
       <div
         onMouseEnter={openNow}
         onMouseLeave={closeSoon}
-        className="fixed right-0 top-0 z-[70] flex h-full w-12 flex-col items-center justify-between border-l border-white/10 bg-void/85 py-6 backdrop-blur-md transition-colors duration-500 hover:bg-void md:w-16"
+        className="pb-safe fixed right-0 top-0 z-[70] flex h-full w-12 flex-col items-center justify-between border-l border-white/10 bg-void/85 py-6 backdrop-blur-md transition-colors duration-500 hover:bg-void md:w-16"
       >
         {/* Disparador del menu */}
         <button
@@ -276,7 +276,7 @@ export default function SidePanel({ scrollTo, lenisRef }) {
                 aria-label={opt.label}
                 onClick={() => setLang(opt.code)}
                 data-cursor="hover"
-                className={`h-9 w-9 font-mono text-[11px] uppercase transition-colors duration-400 ${
+                className={`h-11 w-11 font-mono text-[11px] uppercase transition-colors duration-400 ${
                   active
                     ? 'text-ember'
                     : 'text-smoke hover:text-bone'

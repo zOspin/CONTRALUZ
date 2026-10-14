@@ -28,6 +28,34 @@ export const DUR = {
 };
 
 /**
+ * Version movil simplificada de las animaciones.
+ *
+ * En pantallas chicas o tactiles las entradas largas (2.2s, 90px) se sienten
+ * lentas y cuestan GPU: aqui se detecta una vez y los helpers de abajo
+ * acortan duraciones y recorridos. Sin gsap.matchMedia por helper porque
+ * todos los reveals se crean dentro de gsap.context con cleanup propio;
+ * el factor se lee al crear el tween (suficiente: el layout movil rara vez
+ * cambia a desktop sin recargar).
+ */
+function coarseEnv() {
+  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  return (
+    window.matchMedia('(max-width: 768px)').matches ||
+    window.matchMedia('(hover: none)').matches
+  );
+}
+
+/** Duracion adaptada: ~45% mas corta en movil/tactil. */
+function dur(v) {
+  return coarseEnv() ? v * 0.55 : v;
+}
+
+/** Distancia adaptada: mitad de recorrido en movil/tactil. */
+function dist(v) {
+  return coarseEnv() ? v * 0.5 : v;
+}
+
+/**
  * Animacion de entrada por scroll para una linea de texto.
  *
  * Divide el texto en lineas (SplitText type:'lines'), envuelve cada linea y
@@ -56,7 +84,7 @@ export function revealLines(el, { trigger, start = 'top 85%', delay = 0 } = {}) 
 
   tl.from(inner, {
     yPercent: 118,
-    duration: DUR.slow,
+    duration: dur(DUR.slow),
     ease: EASE.heavy,
     stagger: 0.14,
   });
@@ -78,9 +106,9 @@ export function revealLines(el, { trigger, start = 'top 85%', delay = 0 } = {}) 
  */
 export function revealUp(el, { trigger, start = 'top 88%', delay = 0, y = 60 } = {}) {
   return gsap.from(el, {
-    y,
+    y: dist(y),
     opacity: 0,
-    duration: DUR.slow,
+    duration: dur(DUR.slow),
     ease: EASE.heavy,
     delay,
     scrollTrigger: trigger ? { trigger, start, once: true } : undefined,
@@ -97,7 +125,7 @@ export function revealImage(el, { trigger, start = 'top 90%' } = {}) {
     { clipPath: 'inset(100% 0% 0% 0%)' },
     {
       clipPath: 'inset(0% 0% 0% 0%)',
-      duration: DUR.slow,
+      duration: dur(DUR.slow),
       ease: EASE.settle,
       scrollTrigger: trigger ? { trigger, start, once: true } : undefined,
     }

@@ -114,7 +114,7 @@ export default function Preloader({ onDone }) {
         <p
           data-preload-word
           aria-hidden="true"
-          className="display text-[17vw] leading-[0.85] tracking-tight sm:text-[14vw] md:text-[10.5vw] lg:text-[8.5vw]"
+          className="display text-[17vw] leading-[0.85] tracking-tight sm:text-[14vw] md:text-[10.5vw] lg:text-[8.5vw] 3xl:text-[10rem]"
         >
           CONTRA<span className="slash">/</span>LUZ
         </p>

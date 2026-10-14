@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import SectionHeading from '../components/SectionHeading';
-import { useReducedMotion } from '../hooks/useMedia';
+import { useReducedMotion, useCoarse } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
 
 const EMAIL = 'estudio@contraluz.co';
@@ -25,6 +25,7 @@ export default function Contact() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const reduced = useReducedMotion();
+  const coarse = useCoarse();
   const { lang } = useLang();
   const t = UI[lang];
 
@@ -34,9 +35,9 @@ export default function Contact() {
 
     const ctx = gsap.context(() => {
       gsap.from('[data-contact-reveal]', {
-        y: 70,
+        y: coarse ? 32 : 70,
         opacity: 0,
-        duration: 2.2,
+        duration: coarse ? 1.2 : 2.2,
         stagger: 0.14,
         ease: 'expo.out',
         scrollTrigger: { trigger: el, start: 'top 84%', once: true },
@@ -44,7 +45,7 @@ export default function Contact() {
     }, root);
 
     return () => ctx.revert();
-  }, [reduced]);
+  }, [reduced, coarse]);
 
   const onSubmit = (e) => {
     e.preventDefault();

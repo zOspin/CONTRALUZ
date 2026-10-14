@@ -91,7 +91,7 @@ export default function Stat({ value, suffix = '', label, index = 0 }) {
       <div className="mask-line overflow-hidden">
         <span
           data-stat-num
-          className="display block text-[19vw] leading-[0.82] text-bone sm:text-[13vw] md:text-[8vw] lg:text-[5.5vw]"
+          className="display block text-[19vw] leading-[0.82] text-bone sm:text-[13vw] md:text-[8vw] lg:text-[5.5vw] 3xl:text-[5rem]"
         >
           <span ref={num} className="tabular-nums">
             {reduced ? value : 0}

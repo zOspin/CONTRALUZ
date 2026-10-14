@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { motion, useTransform, useMotionValueEvent, useReducedMotion } from 'framer-motion';
 import { useLenisScrollBridge } from '../hooks/useScrollBridge';
+import SmartImage from './SmartImage';
 import { projects, localizeProject } from '../data/projects';
 import { useLang, UI } from '../context/LanguageContext';
 
@@ -52,14 +53,12 @@ function CineShot({ progress, index, shot, caption }) {
   return (
     <>
       <motion.div className="absolute inset-0" style={{ opacity, scale, x }}>
-        <img
-          src={shot.src}
+        <SmartImage
+          base={shot.src}
           alt={caption.alt}
           className="h-full w-full object-cover"
-          decoding="async"
-          width={1600}
-          height={900}
-          loading={index === 0 ? 'eager' : 'lazy'}
+          eager={index === 0}
+          sizes="100vw"
           fetchPriority={index === 0 ? 'high' : 'low'}
         />
       </motion.div>
@@ -72,7 +71,7 @@ function CineShot({ progress, index, shot, caption }) {
             <p className="label text-ember">
               {String(index + 1).padStart(2, '0')} / {String(N).padStart(2, '0')}
             </p>
-            <p className="display mt-3 text-[11vw] leading-[0.9] text-bone sm:text-[8vw] md:text-[4.5vw]">
+            <p className="display mt-3 text-[11vw] leading-[0.9] text-bone sm:text-[8vw] md:text-[4.5vw] 3xl:text-[4.5rem]">
               {caption.name}
             </p>
           </div>
@@ -116,12 +115,12 @@ export default function Cinematic({ lenisRef }) {
     return (
       <section aria-label={t.reelKicker} className="relative">
         <div className="relative h-[70vh] overflow-hidden">
-          <img
-            src={SHOTS[0].src}
+          <SmartImage
+            base={SHOTS[0].src}
             alt={first.alt}
             className="h-full w-full object-cover"
-            width={1600}
-            height={900}
+            eager
+            sizes="100vw"
           />
           <div className="absolute inset-0 bg-void/40" />
           <div className="shell absolute inset-x-0 bottom-0 flex items-end justify-between pb-10">
@@ -136,8 +135,8 @@ export default function Cinematic({ lenisRef }) {
   }
 
   return (
-    <section ref={trackRef} aria-label={t.reelKicker} className="relative h-[400vh]">
-      <div className="sticky top-0 h-screen overflow-hidden bg-void">
+    <section ref={trackRef} aria-label={t.reelKicker} className="relative h-[400svh]">
+      <div className="sticky top-0 screen-h overflow-hidden bg-void">
         {SHOTS.map((s, i) => {
           const p = localizeProject(projects.find((p) => p.id === s.projectId), lang);
           return (
@@ -187,7 +186,7 @@ export default function Cinematic({ lenisRef }) {
             href="#inicio"
             onClick={skip}
             data-cursor="hover"
-            className="label border border-white/15 px-4 py-2 transition-colors hover:border-ember hover:text-ember"
+            className="label inline-flex min-h-[44px] items-center border border-white/15 px-4 transition-colors hover:border-ember hover:text-ember"
           >
             {t.reelSkip} ↓
           </a>

@@ -96,7 +96,7 @@ export default function Navbar({ scrollTo, lenisRef }) {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-40 transition-colors duration-500 ease-cine ${
+        className={`pt-safe fixed inset-x-0 top-0 z-40 transition-colors duration-500 ease-cine ${
           scrolled || open
             ? 'border-b border-white/[0.06] bg-void/85 backdrop-blur-md'
             : 'bg-transparent'
@@ -194,7 +194,7 @@ export default function Navbar({ scrollTo, lenisRef }) {
             <a
               href={`mailto:${EMAIL}`}
               tabIndex={open ? 0 : -1}
-              className="font-mono text-sm text-bone transition-colors hover:text-ember"
+              className="inline-block py-2 font-mono text-sm text-bone transition-colors hover:text-ember"
             >
               {EMAIL}
             </a>

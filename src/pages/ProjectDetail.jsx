@@ -73,7 +73,7 @@ export default function ProjectDetail() {
     <article ref={root} className="pt-[72px]">
       <header className="shell pb-12 pt-16 md:pb-20 md:pt-24">
         <div data-detail-reveal className="mb-8 flex items-center gap-5">
-          <Link to="/#proyectos" className="label transition-colors hover:text-ember">
+          <Link to="/#proyectos" className="label inline-flex min-h-[44px] items-center transition-colors hover:text-ember">
             {t.backTo}
           </Link>
           <span className="h-px flex-1 bg-white/10" />

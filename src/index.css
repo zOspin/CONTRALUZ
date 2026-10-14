@@ -36,6 +36,11 @@
     @apply bg-void text-bone font-sans antialiased;
     text-rendering: optimizeLegibility;
     font-feature-settings: 'kern' 1, 'liga' 1;
+    /* Recorta desbordes (panel lateral oculto con translateX) sin crear
+       contenedor de scroll: `clip` no genera scroll-container, asi que
+       Lenis sigue mandando. Necesario ADEMAS del de html para Safari iOS,
+       donde un fixed trasladado igual expande el area desplazable. */
+    overflow-x: clip;
   }
 
   /* Foco visible y consistente. Accesibilidad: nunca quitamos el outline sin reemplazo. */
@@ -151,6 +156,33 @@
     .cursor-none-lg * {
       cursor: none !important;
     }
+  }
+
+  /* Tactil: el cursor del SO manda siempre, sin excepciones. */
+  @media (hover: none) {
+    .cursor-none-lg,
+    .cursor-none-lg *,
+    .cursor-none-fine,
+    .cursor-none-fine * {
+      cursor: auto !important;
+    }
+  }
+
+  /* Alto de viewport estable: 100dvh donde hay soporte (Safari iOS 15.4+),
+     100svh como base (no salta con la barra de direcciones), 100vh fallback. */
+  .screen-h {
+    height: 100vh;
+    height: 100svh;
+    height: 100dvh;
+  }
+
+  /* Safe areas iOS (con viewport-fit=cover): el header y overlays fijos
+     no quedan bajo el notch ni el indicador home. */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   /* ---- Utilidades ---- */

@@ -52,3 +52,11 @@ export function useMediaQuery(query) {
 
   return matches;
 }
+
+/**
+ * Entorno movil/tactil (pantalla chica o sin hover fino).
+ * Las secciones lo usan para acortar recorridos y duraciones de GSAP.
+ */
+export function useCoarse() {
+  return useMediaQuery('(max-width: 768px), (hover: none)');
+}

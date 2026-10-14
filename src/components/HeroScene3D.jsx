@@ -43,7 +43,7 @@ const PALETTE = {
   glass: 0x1a1d1f,
 };
 
-export default function HeroScene3D({ progress, enabled = true }) {
+export default function HeroScene3D({ progress, enabled = true, onError }) {
   const mountRef = useRef(null);
   const stateRef = useRef(null);
 
@@ -56,7 +56,29 @@ export default function HeroScene3D({ progress, enabled = true }) {
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-    /* ---------- Renderer ---------- */
+    // Gama baja: menos de 5 cores o <=4GB RAM -> sin sombras, pixelRatio 1.
+    const cores = navigator.hardwareConcurrency ?? 8;
+    const mem = navigator.deviceMemory ?? 8;
+    const lowSpec = cores <= 4 || mem <= 4;
+
+    /* ---------- Renderer (con fallback si WebGL falla) ---------- */
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: !lowSpec,
+        alpha: true,
+        powerPreference: lowSpec ? 'low-power' : 'high-performance',
+      });
+      // Prueba real de contexto: algunos drivers crean el renderer pero
+      // devuelven contexto nulo.
+      if (!renderer.getContext()) throw new Error('webgl-context-null');
+    } catch (err) {
+      onError?.(err);
+      return;
+    }
+    // ACESFilmic: comprime los altos luces sin quemar. Sin esto, la luz
+    // calida se ve plana y digital.
+    /* ---------- Escena ---------- */
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(PALETTE.void);
     // Niebla: hunde la base del edificio en la oscuridad. Es lo que hace
@@ -66,16 +88,9 @@ export default function HeroScene3D({ progress, enabled = true }) {
     const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
     camera.position.set(6, 3.2, 9);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: 'high-performance',
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
+    renderer.setPixelRatio(lowSpec ? 1 : Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = !lowSpec;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    // ACESFilmic: comprime los altos luces sin quemar. Sin esto, la luz
-    // calida se ve plana y digital.
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
     mount.appendChild(renderer.domElement);
@@ -187,16 +202,21 @@ export default function HeroScene3D({ progress, enabled = true }) {
     ground.receiveShadow = true;
     scene.add(ground);
 
-    /* ---------- Resize ---------- */
+    /* ---------- Resize: aspect + fov adaptado a vertical/horizontal ---------- */
     const resize = () => {
       const w = mount.clientWidth || 1;
       const h = mount.clientHeight || 1;
-      camera.aspect = w / h;
+      const aspect = w / h;
+      camera.aspect = aspect;
+      // En vertical el volumen se achica: abrir el fov lo mantiene legible.
+      camera.fov = aspect < 0.8 ? 58 : aspect < 1.2 ? 48 : 38;
       camera.updateProjectionMatrix();
+      renderer.setPixelRatio(lowSpec ? 1 : Math.min(window.devicePixelRatio, 2));
       renderer.setSize(w, h, false);
     };
     resize();
     window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', resize);
 
     /* ---------- Estado de animacion ---------- */
     const state = {
@@ -229,8 +249,9 @@ export default function HeroScene3D({ progress, enabled = true }) {
 
     applyProgress(0);
 
-    /* ---------- Loop ---------- */
+    /* ---------- Loop (pausado con pestaña oculta) ---------- */
     let rafId = 0;
+    let visible = !document.hidden;
     const tick = () => {
       // Lerp: convierte el scroll discreto en movimiento continuo. Sin esto
       // la camara avanza a saltos y se pierde toda la sensacion de peso.
@@ -239,14 +260,26 @@ export default function HeroScene3D({ progress, enabled = true }) {
       renderer.render(scene, camera);
 
       if (reduceMotion) return; // un solo frame en reduced-motion
+      if (!visible) return; // pestaña oculta: no se reprograma
       rafId = requestAnimationFrame(tick);
     };
     tick();
+
+    const onVisibility = () => {
+      visible = !document.hidden;
+      if (visible && !reduceMotion) {
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(tick);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
     /* ---------- Limpieza ---------- */
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener('resize', resize);
+      window.removeEventListener('orientationchange', resize);
+      document.removeEventListener('visibilitychange', onVisibility);
       // dispose explicito: sin esto, Three mantiene buffers de GPU vivos
       // y en HMR se acumulan hasta agotar la memoria.
       scene.traverse((o) => {
@@ -261,7 +294,7 @@ export default function HeroScene3D({ progress, enabled = true }) {
         mount.removeChild(renderer.domElement);
       }
     };
-  }, [enabled]);
+  }, [enabled, onError]);
 
   // El scroll escribe en el MotionValue; aqui lo copiamos al estado que lee
   // el loop. No leemos el MotionValue dentro de requestAnimationFrame porque

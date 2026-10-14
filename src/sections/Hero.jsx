@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, useTransform, useReducedMotion } from 'framer-motion';
 import { useLenisScrollBridge } from '../hooks/useScrollBridge';
 import HeroScene3D from '../components/HeroScene3D';
+import SmartImage from '../components/SmartImage';
 import SplitTitle from '../components/SplitTitle';
 import { useLang, UI } from '../context/LanguageContext';
 
@@ -80,6 +81,8 @@ export default function Hero({ lenisRef }) {
   // 3D solo en desktop con puntero fino: en movil ahorra ~500kB de GPU
   // y bateria. Se evalua en cliente para no romper SSR.
   const [allow3D, setAllow3D] = useState(false);
+  // Si WebGL falla (drivers viejos, Safari con GPU bloqueada): foto fija.
+  const [glFailed, setGlFailed] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia?.('(min-width: 1024px) and (pointer: fine)');
     const update = () => setAllow3D(!!mq?.matches);
@@ -200,11 +203,11 @@ export default function Hero({ lenisRef }) {
     <section
       ref={trackRef}
       id="inicio"
-      className="relative h-[300vh]"
+      className="relative h-[300svh]"
       aria-label="Portada"
     >
       {/* El visor: queda pegado mientras se recorre la pista. */}
-      <div className="sticky top-0 h-screen overflow-hidden">
+      <div className="sticky top-0 screen-h overflow-hidden">
         {/* --- Escena 3D (z-5) ---
             Se dibuja SOBRE los fondos y DEBAJO del texto. Aparece en el
             tramo final del recorrido, cuando las fotos ya valieron: el
@@ -215,7 +218,17 @@ export default function Hero({ lenisRef }) {
           style={{ opacity: sceneOpacity }}
           aria-hidden="true"
         >
-          {allow3D && !prefersReduced && <HeroScene3D progress={scrollYProgress} />}
+          {allow3D && !prefersReduced && !glFailed && (
+            <HeroScene3D progress={scrollYProgress} onError={() => setGlFailed(true)} />
+          )}
+          {glFailed && (
+            <SmartImage
+              base="/proyectos/liuto-01.jpg"
+              alt=""
+              className="h-full w-full object-cover opacity-80"
+              sizes="100vw"
+            />
+          )}
         </motion.div>
 
         {/* --- Fondos (z-0) --- */}
@@ -227,14 +240,12 @@ export default function Hero({ lenisRef }) {
               style={{ opacity: [o1, o2, o3][i], scale: [z1, z2, z3][i] }}
               aria-hidden={i !== 0}
             >
-              <img
-                src={slide.src}
+              <SmartImage
+                base={slide.src}
                 alt={i === 0 ? slide.alt : ''}
                 className="h-full w-full object-cover"
-                decoding="async"
-                width={1600}
-                height={900}
-                loading={i === 0 ? 'eager' : 'lazy'}
+                eager={i === 0}
+                sizes="100vw"
                 // Las tres superpuestas: la primera es la LCP, el resto no
                 // compite por el ancho de banda inicial.
                 fetchPriority={i === 0 ? 'high' : 'low'}
@@ -280,7 +291,7 @@ export default function Hero({ lenisRef }) {
                   a moverse. La estructura de mascaras se conserva, asi que el
                   texto sigue siendo un <h1> semantico y el sitio abre con el
                   logotipo presente. */}
-              <h1 className="display text-[19vw] leading-[0.82] sm:text-[15vw] md:text-[11vw] lg:text-[8.5vw]">
+              <h1 className="display text-[19vw] leading-[0.82] sm:text-[15vw] md:text-[11vw] lg:text-[8.5vw] 3xl:text-[9rem]">
                 <SplitTitle
                   progress={scrollYProgress}
                   range={[-0.22, 0]}

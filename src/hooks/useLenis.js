@@ -78,8 +78,20 @@ export function useLenis() {
       document.fonts.ready.then(() => ScrollTrigger.refresh());
     }
 
+    // Recalcular al rotar o redimensionar (debounce: resize dispara en rafaga).
+    let refreshTimer = 0;
+    const queueRefresh = () => {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 250);
+    };
+    window.addEventListener('resize', queueRefresh);
+    window.addEventListener('orientationchange', queueRefresh);
+
     return () => {
       cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', queueRefresh);
+      window.removeEventListener('orientationchange', queueRefresh);
+      clearTimeout(refreshTimer);
       lenis.destroy();
       lenisRef.current = null;
       if (typeof window !== 'undefined' && window.__lenis === lenis) {
