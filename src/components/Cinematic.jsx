@@ -1,104 +1,196 @@
-import { useRef, useState } from 'react';
-import { motion, useTransform, useMotionValueEvent, useReducedMotion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import {
+  motion,
+  useTransform,
+  useMotionValueEvent,
+  useReducedMotion,
+  easeIn,
+  easeOut,
+} from 'framer-motion';
 import { useLenisScrollBridge } from '../hooks/useScrollBridge';
 import SmartImage from './SmartImage';
 import { projects, localizeProject } from '../data/projects';
 import { useLang, UI } from '../context/LanguageContext';
 
 /**
- * CINEMATICA INTRO
- * ================
- * Reel a pantalla completa entre el preloader y el hero, manejado con scroll.
- * Pista de 400vh + visor fijo: cada plano entra con fundido y sale con un
- * lento zoom/paneo (Ken Burns). Todo es funcion pura del progreso de scroll,
- * asi que se puede avanzar y retroceder.
+ * RECORRIDO — reel de entrada como un viaje de camara
+ * ===================================================
+ * Pista de scroll + visor fijo, entre el preloader y el hero. En vez de
+ * cortar de una foto a otra, la camara "entra" por un punto de luz de cada
+ * imagen (una ventana, un pabellon iluminado) y sale en el espacio siguiente:
  *
- * Solo se animan opacity/scale/x (GPU). Con reduced-motion se muestra un
- * plano fijo con el titulo y el acceso directo al inicio.
+ *   1. llegada: el plano aparece mientras el anterior aun se esta hundiendo
+ *   2. avance:  empuje lento y continuo hacia su punto de entrada
+ *   3. salto:   el empuje acelera (easeIn) y la imagen se abre hacia el
+ *               siguiente plano, que ya esta debajo
+ *
+ * Todo es funcion pura del progreso de scroll: se puede ir y volver.
+ * Solo se animan opacity y scale (transform). Con reduced-motion se muestra
+ * un plano fijo.
+ *
+ * MODO VIDEO
+ * ----------
+ * Si existe un video real del recorrido (p.ej. generado con IA a partir de
+ * los renders), basta con definir VIDEO abajo: el scroll pasa a controlar
+ * `currentTime` y las fotos dejan de usarse. Los titulos y el indice siguen
+ * igual, repartidos en N tramos. Para que el scrub sea fluido el MP4 debe ir
+ * con keyframes densos (ffmpeg -g 1 o -g 2) y sin audio.
  */
 
-// Orden del reel: variedad de escala y luz entre los tres proyectos.
+// Orden del recorrido. `focus` es el punto (en % de la imagen) por donde
+// entra la camara: el foco de luz que "abre" el paso al siguiente espacio.
 const SHOTS = [
-  { src: '/proyectos/liuto-01.jpg', projectId: 'liuto' },
-  { src: '/proyectos/liuto-03.jpg', projectId: 'liuto' },
-  { src: '/proyectos/hecate-01.jpg', projectId: 'luz-de-hecate' },
-  { src: '/proyectos/hecate-02.jpg', projectId: 'luz-de-hecate' },
-  { src: '/proyectos/spa-01.jpg', projectId: 'spa' },
-  { src: '/proyectos/spa-03.jpg', projectId: 'spa' },
-  { src: '/proyectos/liuto-04.jpg', projectId: 'liuto' },
+  { src: '/proyectos/liuto-01.jpg', projectId: 'liuto', focus: [52, 52] },
+  { src: '/proyectos/liuto-03.jpg', projectId: 'liuto', focus: [47, 48] },
+  { src: '/proyectos/hecate-01.jpg', projectId: 'luz-de-hecate', focus: [74, 37] },
+  { src: '/proyectos/hecate-02.jpg', projectId: 'luz-de-hecate', focus: [45, 62] },
+  { src: '/proyectos/spa-01.jpg', projectId: 'spa', focus: [57, 52] },
+  { src: '/proyectos/spa-03.jpg', projectId: 'spa', focus: [49, 47] },
+  { src: '/proyectos/liuto-04.jpg', projectId: 'liuto', focus: [41, 62] },
 ];
 
+/** Video del recorrido. null = recorrido con fotos. Ej: { src: '/recorrido/recorrido.mp4', poster: '/proyectos/liuto-01.jpg' } */
+const VIDEO = null;
+
 const N = SHOTS.length;
+const SEG = 1 / N;
 
 /**
- * Ritmo del reel.
+ * Ritmo del recorrido.
  *
- * TRACK_SCREENS: cuantos "screens" de scroll dura la pista completa. Con 7
- * planos y 600 cada plano se recorre en ~86svh: se disfruta la foto en vez
- * de pasar de largo. Antes 400svh (57svh por plano) se leia como rapido.
- *
- * FADE: fraccion de cada plano usada para el fundido de entrada/salida
- * (0.13 de ~86svh = ~11svh de cruce). Se convierte a progreso global
- * dividiendo por N: usarla directo sobre la pista entera desordena los
- * rangos de useTransform (dejan de ser crecientes) y los planos parpadean.
+ * TRACK_SCREENS: altura de la pista en svh. Con 7 planos y 700, cada plano
+ * dura ~100svh de scroll.
+ * ARRIVE: fraccion del plano que dura el cruce entre dos espacios.
+ * DIVE: fraccion final del plano en la que la camara acelera hacia el foco.
+ * Todo se multiplica por SEG: son fracciones del plano, no de la pista.
  */
-const TRACK_SCREENS = 600;
-const FADE = 0.13;
-const F = FADE / N;
+const TRACK_SCREENS = 700;
+const ARRIVE = 0.14 * SEG;
+const DIVE = 0.38 * SEG;
 
-/** Un plano: fundido + zoom lento + paneo alternado. Hooks encapsulados. */
-function CineShot({ progress, index, shot, caption }) {
-  const start = index / N;
-  const end = (index + 1) / N;
-  const dir = index % 2 === 0 ? 1 : -1;
+/** Un plano: llegada, empuje lento y salto hacia su punto de luz. */
+function CineShot({ progress, index, shot, alt }) {
+  const start = index * SEG;
+  const end = start + SEG;
   const isFirst = index === 0;
+  const isLast = index === N - 1;
 
+  // El empuje nunca retrocede: llega a 1, avanza a 1.12 y salta a 3.4.
+  // El ultimo plano no salta: entrega al velo final.
+  const scale = useTransform(
+    progress,
+    isLast ? [start - ARRIVE, 1] : [Math.max(0, start - ARRIVE), end - DIVE, end + ARRIVE],
+    isLast ? [1, 1.12] : [1, 1.12, 3.4],
+    { ease: isLast ? undefined : [(v) => v, easeIn] }
+  );
+  // El plano saliente sigue opaco hasta que el entrante (encima en el DOM)
+  // termina de aparecer: si los dos se desvanecen a la vez, el cruce pasa
+  // por negro y se pierde la sensacion de atravesar la ventana.
+  const gone = end + ARRIVE;
   const opacity = useTransform(
     progress,
-    isFirst ? [0, end - F, end] : [start, start + F, end - F, end],
-    isFirst ? [1, 1, 0] : [0, 1, 1, 0]
-  );
-  // El paneo y el zoom se reparten en todo el plano: al haber mas recorrido
-  // de scroll, el mismo recorrido por pixel se percibe mas lento.
-  const scale = useTransform(progress, [start, end], [1.04, 1.12]);
-  const x = useTransform(progress, [start, end], [-18 * dir, 18 * dir]);
-  const capOpacity = useTransform(
-    progress,
-    [start + F * 0.5, start + F * 1.6, end - F * 1.6, end - F * 0.5],
-    [0, 1, 1, 0]
+    isFirst
+      ? [0, gone, gone + 0.0005]
+      : isLast
+        ? [start - ARRIVE, start + ARRIVE, 1]
+        : [start - ARRIVE, start + ARRIVE, gone, gone + 0.0005],
+    isFirst ? [1, 1, 0] : isLast ? [0, 1, 1] : [0, 1, 1, 0]
   );
 
   return (
-    <>
-      <motion.div className="absolute inset-0" style={{ opacity, scale, x }}>
-        <SmartImage
-          base={shot.src}
-          alt={caption.alt}
-          className="h-full w-full object-cover"
-          eager={index === 0}
-          sizes="100vw"
-          fetchPriority={index === 0 ? 'high' : 'low'}
-        />
-      </motion.div>
-      <motion.div
-        className="absolute inset-x-0 bottom-0 z-10"
-        style={{ opacity: capOpacity }}
-      >
-        {/* pb por encima del boton "Saltar" (bottom-[9vh] + 44px): antes la
-            ubicacion quedaba encimada con el boton. */}
-        <div className="shell flex items-end justify-between pb-[calc(9vh+4.5rem)]">
-          <div>
-            <p className="label text-ember">
-              {String(index + 1).padStart(2, '0')} / {String(N).padStart(2, '0')}
-            </p>
-            <p className="display mt-3 text-[11vw] leading-[0.9] text-bone sm:text-[8vw] md:text-[4.5vw] 3xl:text-[4.5rem]">
-              {caption.name}
-            </p>
-          </div>
-          <p className="label hidden text-right sm:block">{caption.location}</p>
+    <motion.div
+      className="absolute inset-0 will-change-transform"
+      style={{
+        opacity,
+        scale,
+        transformOrigin: `${shot.focus[0]}% ${shot.focus[1]}%`,
+      }}
+    >
+      <SmartImage
+        base={shot.src}
+        alt={alt}
+        className="h-full w-full object-cover"
+        style={{ objectPosition: `${shot.focus[0]}% ${shot.focus[1]}%` }}
+        eager={index === 0}
+        sizes="100vw"
+        fetchPriority={index === 0 ? 'high' : 'low'}
+      />
+    </motion.div>
+  );
+}
+
+/** Titulo del plano: entra despues del cruce y se va antes del salto. */
+function CineCaption({ progress, index, caption }) {
+  const start = index * SEG;
+  const end = start + SEG;
+  const isFirst = index === 0;
+  const range = [
+    isFirst ? 0 : start + ARRIVE,
+    isFirst ? 0.0001 : start + ARRIVE * 2,
+    end - DIVE,
+    end - DIVE + ARRIVE,
+  ];
+  const opacity = useTransform(progress, range, [isFirst ? 1 : 0, 1, 1, 0]);
+  const y = useTransform(progress, range, [isFirst ? 0 : 28, 0, 0, -20], {
+    ease: [easeOut, (v) => v, easeIn],
+  });
+  // Invisible y sin foco cuando no es el plano activo.
+  const visibility = useTransform(opacity, (v) => (v > 0.02 ? 'visible' : 'hidden'));
+
+  // Contenedor fijo para la posicion (el translate de centrado vive aqui) y
+  // motion.div adentro: Framer escribe `transform` y pisaria el -translate-y.
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-[calc(9vh+4.5rem)] z-10 md:bottom-auto md:top-1/2 md:-translate-y-1/2">
+      <motion.div className="shell" style={{ opacity, y, visibility }}>
+        <div className="max-w-md">
+          <p className="label text-ember tabular-nums">
+            {String(index + 1).padStart(2, '0')} / {String(N).padStart(2, '0')}
+          </p>
+          <p className="display mt-3 text-[12vw] leading-[0.88] text-bone sm:text-[8vw] md:text-[5vw] 3xl:text-[6rem]">
+            {caption.name}
+          </p>
+          <p className="label mt-4 text-bone/70">
+            {caption.category} — {caption.location}
+          </p>
+          <p className="mt-5 hidden max-w-sm font-serif text-lg italic leading-relaxed text-bone/80 md:block">
+            {caption.excerpt}
+          </p>
         </div>
       </motion.div>
-    </>
+    </div>
+  );
+}
+
+/** Modo video: el scroll controla currentTime. Un solo seek por frame. */
+function CineVideo({ progress }) {
+  const ref = useRef(null);
+  const pending = useRef(null);
+  const raf = useRef(0);
+
+  useMotionValueEvent(progress, 'change', (v) => {
+    pending.current = v;
+    if (raf.current) return;
+    raf.current = requestAnimationFrame(() => {
+      raf.current = 0;
+      const el = ref.current;
+      if (!el || !el.duration || pending.current == null) return;
+      el.currentTime = pending.current * (el.duration - 0.05);
+    });
+  });
+
+  useEffect(() => () => cancelAnimationFrame(raf.current), []);
+
+  return (
+    <video
+      ref={ref}
+      src={VIDEO.src}
+      poster={VIDEO.poster}
+      muted
+      playsInline
+      preload="auto"
+      aria-hidden="true"
+      className="absolute inset-0 h-full w-full object-cover"
+    />
   );
 }
 
@@ -114,12 +206,18 @@ export default function Cinematic({ lenisRef }) {
     setShot(Math.min(N - 1, Math.max(0, Math.floor(v * N))));
   });
 
-  // Barras de cine: entran al empezar el reel.
-  const barScale = useTransform(progress, [0, 0.04], [0, 1]);
+  // Barras de cine: entran al empezar el recorrido.
+  const barScale = useTransform(progress, [0, 0.03], [0, 1]);
   // Velo final: funde a negro antes de entregar al hero.
-  const endVeil = useTransform(progress, [0.94, 1], [0, 1]);
+  const endVeil = useTransform(progress, [0.95, 1], [0, 1]);
   // Hint de scroll: se apaga al avanzar.
-  const hintOpacity = useTransform(progress, [0, 0.06], [1, 0]);
+  const hintOpacity = useTransform(progress, [0, 0.04], [1, 0]);
+
+  const scrollToY = (y, duration) => {
+    const lenis = lenisRef?.current ?? window.__lenis;
+    if (lenis) lenis.scrollTo(y, { duration });
+    else window.scrollTo({ top: y, behavior: 'smooth' });
+  };
 
   const skip = (e) => {
     e.preventDefault();
@@ -129,6 +227,26 @@ export default function Cinematic({ lenisRef }) {
     if (lenis) lenis.scrollTo(target, { duration: 1.8 });
     else target.scrollIntoView({ behavior: 'smooth' });
   };
+
+  /** Salta al primer plano de un proyecto (mitad del tramo, ya sin cruce). */
+  const goToShot = (i) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const lenis = lenisRef?.current ?? window.__lenis;
+    const scrollY = lenis ? lenis.scroll : window.scrollY;
+    const top = track.getBoundingClientRect().top + scrollY;
+    const span = track.offsetHeight - window.innerHeight;
+    scrollToY(top + (i + 0.4) * SEG * span, 2.2);
+  };
+
+  // Indice: un renglon por proyecto, en orden de primera aparicion.
+  const index = [];
+  SHOTS.forEach((s, i) => {
+    if (!index.some((e) => e.projectId === s.projectId)) {
+      index.push({ projectId: s.projectId, first: i });
+    }
+  });
+  const activeProject = SHOTS[shot].projectId;
 
   if (prefersReduced) {
     const first = localizeProject(projects[0], lang);
@@ -162,21 +280,74 @@ export default function Cinematic({ lenisRef }) {
       style={{ height: `${TRACK_SCREENS}svh` }}
     >
       <div className="sticky top-0 screen-h overflow-hidden bg-void">
+        {VIDEO ? (
+          <CineVideo progress={progress} />
+        ) : (
+          SHOTS.map((s, i) => {
+            const p = localizeProject(projects.find((p) => p.id === s.projectId), lang);
+            return (
+              <CineShot key={s.src} progress={progress} index={i} shot={s} alt={p.alt} />
+            );
+          })
+        )}
+
+        {/* Velo lateral + inferior: sostiene el texto a la izquierda */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-void/70 via-transparent to-void/40" />
+        <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-void/75 via-void/20 to-transparent md:block" />
+        {/* Franja derecha suave para el indice */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[32%] bg-gradient-to-l from-void/70 to-transparent md:block" />
+
         {SHOTS.map((s, i) => {
           const p = localizeProject(projects.find((p) => p.id === s.projectId), lang);
           return (
-            <CineShot
+            <CineCaption
               key={`${s.src}-${lang}`}
               progress={progress}
               index={i}
-              shot={s}
-              caption={{ name: p.name, location: p.location, alt: p.alt }}
+              caption={{
+                name: p.name,
+                location: p.location,
+                category: p.category,
+                excerpt: p.excerpt,
+              }}
             />
           );
         })}
 
-        {/* Velo + degradado para sostener texto */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-void/70 via-transparent to-void/40" />
+        {/* Indice de proyectos (md+): el activo en ember, click salta */}
+        <nav
+          aria-label={t.projects}
+          className="absolute right-0 top-1/2 z-30 hidden -translate-y-1/2 md:block"
+        >
+          <ul className="shell space-y-3 pr-20 text-right lg:pr-16">
+            {index.map(({ projectId, first }, k) => {
+              const p = localizeProject(projects.find((p) => p.id === projectId), lang);
+              const active = projectId === activeProject;
+              return (
+                <li key={projectId}>
+                  <button
+                    type="button"
+                    onClick={() => goToShot(first)}
+                    data-cursor="hover"
+                    aria-current={active ? 'true' : undefined}
+                    className={`group inline-flex min-h-[44px] items-center gap-3 font-mono text-[11px] uppercase tracking-wide2 transition-colors duration-500 ${
+                      active ? 'text-ember' : 'text-bone/60 hover:text-bone'
+                    }`}
+                  >
+                    {p.name}
+                    <span className="tabular-nums">{String(k + 1).padStart(2, '0')}</span>
+                    <span
+                      aria-hidden="true"
+                      className={`h-px bg-current transition-all duration-500 ease-cine ${
+                        active ? 'w-8' : 'w-3 group-hover:w-6'
+                      }`}
+                    />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
 
         {/* Barras letterbox */}
         <motion.div
@@ -206,7 +377,8 @@ export default function Cinematic({ lenisRef }) {
         >
           <span className="label">{t.scroll}</span>
         </motion.div>
-        <div className="shell absolute inset-x-0 bottom-[9vh] z-30 flex justify-end">
+        {/* pr extra: la barra lateral fija (w-12 / md:w-16) tapaba el boton. */}
+        <div className="shell absolute inset-x-0 bottom-[9vh] z-30 flex justify-end pr-16 md:pr-20 lg:pr-16">
           <a
             href="#inicio"
             onClick={skip}
