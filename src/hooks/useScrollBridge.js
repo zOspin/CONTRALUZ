@@ -80,10 +80,11 @@ export function useLenisScrollBridge({ lenisRef, trackRef }) {
           anclas del navbar y la restauracion de scroll del navegador. */
     const onScroll = () => compute();
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', () => {
+    const onResize = () => {
       measure();
       compute();
-    });
+    };
+    window.addEventListener('resize', onResize);
     if (document.fonts?.ready) {
       document.fonts.ready.then(() => {
         measure();
@@ -122,6 +123,7 @@ export function useLenisScrollBridge({ lenisRef, trackRef }) {
 
     return () => {
       window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
       attached?.off('scroll', onScroll);
       clearTimeout(id1);
       cancelAnimationFrame(rafId);

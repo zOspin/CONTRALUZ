@@ -17,8 +17,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /**
  * Seccion Contacto: formulario solo-frontend (sin backend).
- * Valida nombre, mensaje y formato de email si se informa;
- * muestra exito visual y lo resetea al seguir escribiendo.
+ * Valida nombre, mensaje y formato de email si se informa; al enviar abre
+ * el cliente de correo con el mensaje redactado hacia EMAIL.
  */
 export default function Contact() {
   const root = useRef(null);
@@ -62,6 +62,14 @@ export default function Contact() {
       setError(t.errEmail);
       return;
     }
+
+    // Sin backend: el mensaje sale por el cliente de correo del visitante,
+    // ya redactado. Antes se mostraba "recibido" sin enviar nada.
+    const subject = `${t.mailSubject} — ${name}`;
+    const body = `${message}
+
+— ${name}${email ? ` <${email}>` : ''}`;
+    window.location.href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
     setError('');
     setSent(true);

@@ -96,14 +96,18 @@ export default function Navbar({ scrollTo, lenisRef }) {
   return (
     <>
       <header
-        className={`pt-safe fixed inset-x-0 top-0 z-40 transition-colors duration-500 ease-cine ${
+        // Abierto, el header sube sobre el overlay (z-overlay = 90): si no, el
+        // overlay tapaba el boton de cerrar y no habia forma de salir.
+        className={`pt-safe fixed inset-x-0 top-0 transition-colors duration-500 ease-cine ${
+          open ? 'z-[91]' : 'z-40'
+        } ${
           scrolled || open
             ? 'border-b border-white/[0.06] bg-void/85 backdrop-blur-md'
             : 'bg-transparent'
         }`}
       >
         <nav
-          className="shell flex h-[72px] items-center justify-between"
+          className="shell flex h-[72px] items-center justify-between pr-14 md:pr-16"
           aria-label={t.nav}
         >
           <Link

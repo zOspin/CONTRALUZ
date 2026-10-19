@@ -28,15 +28,18 @@ import { useReducedMotion } from '../hooks/useMedia';
  * -------------
  * Un panel que solo abre con hover es inaccesible. Por eso:
  *   - La barra es un <button> real con aria-expanded y aria-controls.
- *   - Abre con hover, con focus de teclado Y con click.
+ *   - Abre con hover (solo mouse) y con click/teclado; al abrir con click
+ *     el foco pasa al primer enlace.
  *   - Escape cierra y devuelve el foco a la barra.
  *   - El foco se TRABA dentro del panel mientras esta abierto.
  *   - Los botones de idioma son botones reales con role="radio".
  *
  * MOVIL
  * -----
- * En tactil no hay hover: la barra se toca y el panel abre como drawer. Al
- * tocar fuera, se cierra.
+ * En movil la navegacion la da la hamburguesa del Navbar: aqui el boton de
+ * menu se oculta (dos menus a la vez confundian) y la barra solo muestra el
+ * idioma. En md+ tactil (tablets) la barra se toca y el panel abre como
+ * drawer; al tocar fuera, se cierra.
  */
 
 const LINKS = [
@@ -75,6 +78,14 @@ export default function SidePanel({ scrollTo, lenisRef }) {
   const closeSoon = () => {
     clearTimeout(closeTimer.current);
     closeTimer.current = setTimeout(() => setOpen(false), 180);
+  };
+  // Hover solo con mouse real. En tactil el navegador emula mouseenter antes
+  // del click: abria el panel y el toggle del click lo cerraba al instante.
+  const onPointerEnter = (e) => {
+    if (e.pointerType === 'mouse') openNow();
+  };
+  const onPointerLeave = (e) => {
+    if (e.pointerType === 'mouse') closeSoon();
   };
 
   useEffect(() => () => clearTimeout(closeTimer.current), []);
@@ -190,8 +201,8 @@ export default function SidePanel({ scrollTo, lenisRef }) {
         className="fixed right-12 top-0 z-[65] flex h-full w-[calc(100vw-3rem)] max-w-[360px] flex-col justify-center border-l border-white/10 bg-void/97 px-8 py-28 backdrop-blur-xl md:right-16 md:w-[300px] md:max-w-none md:px-9"
         style={{ visibility: open ? 'visible' : 'hidden' }}
         aria-hidden={!open}
-        onMouseEnter={openNow}
-        onMouseLeave={closeSoon}
+        onPointerEnter={onPointerEnter}
+        onPointerLeave={onPointerLeave}
       >
         <nav aria-label={t.nav} className="relative">
           <span className="label">{t.nav}</span>
@@ -222,20 +233,26 @@ export default function SidePanel({ scrollTo, lenisRef }) {
 
       {/* ---------------- LA BARRA (siempre visible) ---------------- */}
       <div
-        onMouseEnter={openNow}
-        onMouseLeave={closeSoon}
+        onPointerEnter={onPointerEnter}
+        onPointerLeave={onPointerLeave}
         className="pb-safe fixed right-0 top-0 z-[70] flex h-full w-12 flex-col items-center justify-between border-l border-white/10 bg-void/85 py-6 backdrop-blur-md transition-colors duration-500 hover:bg-void md:w-16"
       >
         {/* Disparador del menu */}
         <button
           ref={triggerRef}
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => {
+            const next = !open;
+            setOpen(next);
+            // Al abrir con click/teclado el foco entra al panel (la trampa de
+            // foco vive dentro del <aside>, no en la barra).
+            if (next) requestAnimationFrame(() => firstLinkRef.current?.focus());
+          }}
           aria-expanded={open}
           aria-controls="panel-lateral"
           aria-label={open ? t.close : t.menu}
           data-cursor="hover"
-          className="group flex h-16 w-10 flex-col items-center justify-center gap-2"
+          className="group hidden h-16 w-10 flex-col items-center justify-center gap-2 md:flex"
         >
           <span
             aria-hidden="true"

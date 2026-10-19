@@ -30,6 +30,22 @@ const SHOTS = [
 
 const N = SHOTS.length;
 
+/**
+ * Ritmo del reel.
+ *
+ * TRACK_SCREENS: cuantos "screens" de scroll dura la pista completa. Con 7
+ * planos y 600 cada plano se recorre en ~86svh: se disfruta la foto en vez
+ * de pasar de largo. Antes 400svh (57svh por plano) se leia como rapido.
+ *
+ * FADE: fraccion de cada plano usada para el fundido de entrada/salida
+ * (0.13 de ~86svh = ~11svh de cruce). Se convierte a progreso global
+ * dividiendo por N: usarla directo sobre la pista entera desordena los
+ * rangos de useTransform (dejan de ser crecientes) y los planos parpadean.
+ */
+const TRACK_SCREENS = 600;
+const FADE = 0.13;
+const F = FADE / N;
+
 /** Un plano: fundido + zoom lento + paneo alternado. Hooks encapsulados. */
 function CineShot({ progress, index, shot, caption }) {
   const start = index / N;
@@ -39,14 +55,16 @@ function CineShot({ progress, index, shot, caption }) {
 
   const opacity = useTransform(
     progress,
-    isFirst ? [0, end - 0.07, end] : [start, start + 0.07, end - 0.07, end],
+    isFirst ? [0, end - F, end] : [start, start + F, end - F, end],
     isFirst ? [1, 1, 0] : [0, 1, 1, 0]
   );
-  const scale = useTransform(progress, [start, end], [1.06, 1.18]);
-  const x = useTransform(progress, [start, end], [-26 * dir, 26 * dir]);
+  // El paneo y el zoom se reparten en todo el plano: al haber mas recorrido
+  // de scroll, el mismo recorrido por pixel se percibe mas lento.
+  const scale = useTransform(progress, [start, end], [1.04, 1.12]);
+  const x = useTransform(progress, [start, end], [-18 * dir, 18 * dir]);
   const capOpacity = useTransform(
     progress,
-    [start + 0.02, start + 0.1, end - 0.1, end - 0.02],
+    [start + F * 0.5, start + F * 1.6, end - F * 1.6, end - F * 0.5],
     [0, 1, 1, 0]
   );
 
@@ -66,7 +84,9 @@ function CineShot({ progress, index, shot, caption }) {
         className="absolute inset-x-0 bottom-0 z-10"
         style={{ opacity: capOpacity }}
       >
-        <div className="shell flex items-end justify-between pb-24 md:pb-28">
+        {/* pb por encima del boton "Saltar" (bottom-[9vh] + 44px): antes la
+            ubicacion quedaba encimada con el boton. */}
+        <div className="shell flex items-end justify-between pb-[calc(9vh+4.5rem)]">
           <div>
             <p className="label text-ember">
               {String(index + 1).padStart(2, '0')} / {String(N).padStart(2, '0')}
@@ -135,7 +155,12 @@ export default function Cinematic({ lenisRef }) {
   }
 
   return (
-    <section ref={trackRef} aria-label={t.reelKicker} className="relative h-[400svh]">
+    <section
+      ref={trackRef}
+      aria-label={t.reelKicker}
+      className="relative"
+      style={{ height: `${TRACK_SCREENS}svh` }}
+    >
       <div className="sticky top-0 screen-h overflow-hidden bg-void">
         {SHOTS.map((s, i) => {
           const p = localizeProject(projects.find((p) => p.id === s.projectId), lang);

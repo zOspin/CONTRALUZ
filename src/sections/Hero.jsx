@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, useTransform, useReducedMotion } from 'framer-motion';
 import { useLenisScrollBridge } from '../hooks/useScrollBridge';
 import HeroScene3D from '../components/HeroScene3D';
@@ -11,43 +11,29 @@ import { useLang, UI } from '../context/LanguageContext';
  * ===================
  * Patron "House" (Scrolltide) adaptado al lenguaje CONTRA/LUZ.
  *
- * COMO FUNCIONA
- * -------------
- * El hero ya no es una seccion de 100vh que aparece y se va. Es un
- * "tira" de 300vh de alto:
+ * El hero es una "tira" de 300svh de alto con un visor fijo (sticky): el
+ * scroll recorre la pista y Framer deriva TODAS las transformaciones del
+ * progreso 0 -> 1. Cada estado es funcion pura de la posicion: se puede
+ * subir y todo vuelve atras correctamente.
  *
- *   <div ref={ref} className="h-[300vh]">      <- la pista, da recorrido
- *     <div className="sticky top-0 h-screen">  <- el visor, se queda fijo
- *       ...                                     <- 3 fondos + 3 textos
- *     </div>
- *   </div>
- *
- * El scroll del usuario recorre la pista. Framer Motion mide cuanto se ha
- * recorrido (scrollYProgress: 0 -> 1) y de ahi salen TODAS las transformaciones.
- * No hay timelines ni animaciones que "corran": cada estado es una funcion
- * pura de la posicion de scroll. Por eso se puede hacer scroll inverso
- * (scrollear hacia arriba) y todo vuelve atras correctamente.
- *
- * SECUENCIA (rangos del prompt)
+ * SECUENCIA
  *   0%  - 30%  -> Bloque 1: badge + "CONTRA/LUZ"
  *   35% - 65%  -> Bloque 2: "La arquitectura revela el volumen"
  *   70% - 100% -> Bloque 3: CTA final
  *
- * RENDIMIENTO
- *   Solo se animan `opacity` y `scale`/`y`. Framer los compone en GPU cuando
- *   el elemento tiene `will-change`. Nada de animar `height` ni `top`.
+ * ANTI-SOLAPAMIENTO
+ *   Cada bloque es un HeroBlock: deriva `visibility` y `pointer-events` de
+ *   su propia opacidad, y los bloques 2-3 arrancan con clase `invisible`.
+ *   Solo la escena activa es visible e interactiva; si el MotionValue falla
+ *   (NaN) o la animacion se retrasa, nada se muestra encimado.
+ *   Con prefers-reduced-motion no hay pista: un hero estatico con el
+ *   bloque 1 en flujo normal (antes los 3 bloques forzaban opacity 1 y
+ *   quedaban apilados: ese era el solapamiento).
  *
- * ACCESIBILIDAD
- *   Con prefers-reduced-motion los rangos se "apagan": los bloques quedan en
- *   opacidad 1 sin transform y las imagenes en escala 1. El contenido es
- *   exactamente el mismo, solo desaparece el efecto de scroll. Sin el modo
- *   reducido, los bloques se apagan por opacity, asi que tambien es usable.
- *
- * NOTA SOBRE GSAP
- *   Este componente NO usa GSAP. El resto del sitio si (preloader, secciones,
- *   cursor). Conviven sin conflicto: Framer toma el scroll via su propio
- *   listener de scroll, y Lenis lo suaviza. `useScroll` lee la posicion real
- *   del documento, que Lenis actualiza, asi que ambos ven el mismo valor.
+ * TAMAÑOS
+ *   Titulos con clamp() en funcion de ancho Y alto: min(8vw, 14vh).
+ *   Reglas extra en index.css para ventanas bajas (max-height: 700px) y
+ *   ultrawide (min-aspect-ratio: 21/9).
  */
 
 const RANGES = {
@@ -57,7 +43,6 @@ const RANGES = {
 };
 
 // Tres imagenes: los tres proyectos del estudio, en orden de escala.
-// De la ladera iluminada de Hong Kong al interior calido del valle.
 const SLIDES = [
   {
     src: '/proyectos/liuto-01.jpg',
@@ -73,6 +58,23 @@ const SLIDES = [
   },
 ];
 
+/**
+ * Un bloque del hero. La visibilidad y los pointer-events derivan de la
+ * opacidad animada: lo inactivo no se ve, no recibe clicks ni foco.
+ */
+function HeroBlock({ opacity, y, startHidden = false, children }) {
+  const visibility = useTransform(opacity, (v) => (v > 0.04 ? 'visible' : 'hidden'));
+  const pointerEvents = useTransform(opacity, (v) => (v > 0.4 ? 'auto' : 'none'));
+  return (
+    <motion.div
+      style={{ opacity, y, visibility, pointerEvents }}
+      className={`absolute inset-x-0 bottom-0 ${startHidden ? 'invisible' : ''}`}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export default function Hero({ lenisRef }) {
   const trackRef = useRef(null);
   const prefersReduced = useReducedMotion();
@@ -81,8 +83,6 @@ export default function Hero({ lenisRef }) {
   // 3D solo en desktop con puntero fino: en movil ahorra ~500kB de GPU
   // y bateria. Se evalua en cliente para no romper SSR.
   const [allow3D, setAllow3D] = useState(false);
-  // Si WebGL falla (drivers viejos, Safari con GPU bloqueada): foto fija.
-  const [glFailed, setGlFailed] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia?.('(min-width: 1024px) and (pointer: fine)');
     const update = () => setAllow3D(!!mq?.matches);
@@ -90,116 +90,130 @@ export default function Hero({ lenisRef }) {
     mq?.addEventListener('change', update);
     return () => mq?.removeEventListener('change', update);
   }, []);
+  // Si WebGL falla (drivers viejos, Safari con GPU bloqueada): foto fija.
+  const [glFailed, setGlFailed] = useState(false);
+  // Referencia estable: HeroScene3D depende de onError en su efecto y una
+  // funcion nueva por render recrearia el contexto WebGL (p.ej. al cambiar idioma).
+  const onGlError = useCallback(() => setGlFailed(true), []);
 
-  /* Posicion de scroll dentro de la pista: 0 al entrar, 1 al salir.
-
-     No usamos `useScroll` directo a proposito. Cuando Lenis esta activo
-     interpola el scroll dentro de su propio rAF, y `useScroll` puede leer el
-     valor un frame antes de que Lenis lo escriba: `scrollYProgress` queda
-     atrasado y el hero no responde al scroll (o responde a destiempo).
-
-     El puente nos engancha al evento 'scroll' de Lenis — que se emite DESPUES
-     de aplicar la posicion — y escribe en un MotionValue unico. Todos los
-     useTransform de abajo leen de ahi, asi que hay una sola fuente de verdad.
-     Ver src/hooks/useScrollBridge.js para el detalle. */
+  /* Posicion de scroll dentro de la pista: 0 al entrar, 1 al salir. */
   const scrollYProgress = useLenisScrollBridge({ lenisRef, trackRef });
 
-  /* ---- Fondos: cross-fade + zoom continuo ----
-     Cada imagen esta siempre montada. La opacidad hace el cross-fade y el
-     scale hace el lento zoom-in. Las tres comparten la misma escala de
-     tiempo para que el "viaje" se sienta continuo y no cortado. */
-
+  /* ---- Fondos: cross-fade + zoom continuo ---- */
   const scale1 = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
   const scale2 = useTransform(scrollYProgress, [0, 1], [1.08, 1.16]);
   const scale3 = useTransform(scrollYProgress, [0, 1], [1.16, 1.24]);
 
   const fade1 = useTransform(scrollYProgress, [0, 0.22, 0.34], [1, 1, 0]);
   const fade2 = useTransform(scrollYProgress, [0.3, 0.46, 0.66, 0.78], [0, 1, 1, 0]);
-    /* La tercera foto cae a 0 en el tramo final: deja ver el render 3D.
-     Sin esto, spa-01 queda por encima del volumen y el 3D no se ve. */
+    /* La tercera foto cae a 0 en el tramo final: deja ver el render 3D. */
   const fade3 = useTransform(scrollYProgress, [0.72, 0.86, 0.95], [0, 1, 0]);
 
-  /* ---- Contenido: entrada y salida por bloques ----
-     Cada bloque tiene un rango. Dentro, la opacidad sube de 0 a 1, sostiene,
-     y vuelve a 0 antes de que llegue el siguiente: el texto aparece, se
-     mantiene, y se retira.
+  /* ---- Contenido: entrada y salida por bloques ---- */
+  const b1Opacity = useTransform(scrollYProgress, [0, 0.06, 0.24, 0.3], [1, 1, 1, 0]);
+  const b1Y = useTransform(scrollYProgress, [0, 0.06, 0.24, 0.3], [0, 0, 0, -48]);
 
-     NOTA — reglas de hooks:
-     estas llamadas NO pueden vivir dentro de un bucle ni dentro del JSX, o
-     el orden de los hooks cambiaria entre renders y React fallaria. Por eso
-     hay un hook por bloque, en orden fijo, calculados aqui arriba. Si
-     anades un bloque nuevo, agrega su `useTransform` aqui y su objeto abajo. */
+  const b2Opacity = useTransform(scrollYProgress, [0.29, 0.4, 0.58, 0.65], [0, 1, 1, 0]);
+  const b2Y = useTransform(scrollYProgress, [0.29, 0.4, 0.58, 0.65], [48, 0, 0, -48]);
 
-  const b1Opacity = useTransform(
-    scrollYProgress,
-    [0, 0.06, 0.24, 0.3],
-    prefersReduced ? [1, 1, 1, 1] : [1, 1, 1, 0]
-  );
-  const b1Y = useTransform(
-    scrollYProgress,
-    [0, 0.06, 0.24, 0.3],
-    prefersReduced ? [0, 0, 0, 0] : [0, 0, 0, -48]
-  );
+  const b3Opacity = useTransform(scrollYProgress, [0.64, 0.76, 1], [0, 1, 1]);
+  const b3Y = useTransform(scrollYProgress, [0.64, 0.76, 1], [48, 0, 0]);
 
-  const b2Opacity = useTransform(
-    scrollYProgress,
-    [0.29, 0.4, 0.58, 0.65],
-    prefersReduced ? [1, 1, 1, 1] : [0, 1, 1, 0]
-  );
-  const b2Y = useTransform(
-    scrollYProgress,
-    [0.29, 0.4, 0.58, 0.65],
-    prefersReduced ? [0, 0, 0, 0] : [48, 0, 0, -48]
-  );
-
-  const b3Opacity = useTransform(
-    scrollYProgress,
-    [0.64, 0.76, 1],
-    prefersReduced ? [1, 1, 1] : [0, 1, 1]
-  );
-  const b3Y = useTransform(
-    scrollYProgress,
-    [0.64, 0.76, 1, 1],
-    prefersReduced ? [0, 0, 0, 0] : [48, 0, 0, 0]
-  );
-
-  /* ---- Velo general: el conjunto se aclara al entrar y se oscurece al salir.
-     Da unidad a los tres bloques y evita el salto de un texto plano a otro. */
+  /* ---- Velo general ---- */
   const veil = useTransform(
     scrollYProgress,
     [0, 0.2, 0.8, 1],
-    // Velo mas suave que antes. Con las fotos a COLOR, un velo al 62%
-    // las apagaba por completo y el efecto era el mismo que el B/N. Ahora
-    // arranca en 0.5 y baja a 0.2: la foto se ve, el texto sigue
-    //contrastando porque vive en la zona baja (donde el degradado es fuerte).
-    prefersReduced ? [0.5, 0.5, 0.5, 0.5] : [0.5, 0.2, 0.2, 0.55]
+    [0.5, 0.2, 0.2, 0.55]
   );
 
-  /* El indicador de scroll se apaga en el primer 8%: si no, aparece
-     apagado encima del bloque 2 sin que tenga sentido. Hook aqui arriba
-     por la misma regla: nada de useTransform dentro del JSX. */
   const scrollHintOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
 
-  const z1 = prefersReduced ? 1 : scale1;
-  const z2 = prefersReduced ? 1 : scale2;
-  const z3 = prefersReduced ? 1 : scale3;
-  // Reduced-motion: una sola imagen visible (si las tres quedan a 1,
-  // la ultima tapa a las demas y el hero pierde su portada).
-  const o1 = prefersReduced ? 1 : fade1;
-  const o2 = prefersReduced ? 0 : fade2;
-  const o3 = prefersReduced ? 0 : fade3;
+  /* ---- Escena 3D: entra al final ---- */
+  const sceneOpacity = useTransform(scrollYProgress, [0.55, 0.78, 1], [0, 0.85, 1]);
 
-  /* ---- Escena 3D: entra al final, cuando las fotos ya dieron su turno.
-         Se opone a las fotos en el ultimo tramo: si ambas estan a 1, el
-         render 3D queda escondido detras de una fotografia. */
-  const sceneOpacity = useTransform(
-    scrollYProgress,
-    [0.55, 0.78, 1],
-    prefersReduced ? [0, 0, 0] : [0, 0.85, 1]
-  );
+  const goTo = (e, id) => {
+    e.preventDefault();
+    const target = document.getElementById(id);
+    if (!target) return;
+    const lenis = lenisRef?.current ?? window.__lenis;
+    if (lenis) lenis.scrollTo(target, { duration: 1.6, offset: -10 });
+    else target.scrollIntoView({ behavior: 'smooth' });
+    window.history.replaceState(null, '', `#${id}`);
+  };
+
+  /* ---- Reduced-motion: hero estatico, un solo bloque en flujo normal ---- */
+  if (prefersReduced) {
+    return (
+      <section
+        id="inicio"
+        aria-label="Portada"
+        className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden"
+      >
+        <div className="absolute inset-0" aria-hidden="true">
+          <SmartImage
+            base={SLIDES[0].src}
+            alt=""
+            className="h-full w-full object-cover"
+            eager
+            sizes="100vw"
+            fetchPriority="high"
+          />
+          <div className="absolute inset-0 bg-void/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-void via-void/10 to-void/30" />
+        </div>
+
+        <div className="shell relative z-10 pb-12 pt-32" data-hero-content>
+          <div className="mb-6 flex flex-wrap items-center gap-3" data-hero-kicker>
+            <span className="label border border-white/15 px-3 py-1.5 text-bone/80">
+              {t.portfolio}
+            </span>
+            <span className="label">{t.architecture}</span>
+          </div>
+
+          <h1
+            data-hero-title
+            className="display text-[clamp(3rem,min(11vw,17vh),10rem)] leading-[0.82]"
+          >
+            CONTRA
+            <br />
+            <span className="slash">/</span>LUZ
+          </h1>
+
+          <p
+            data-hero-tag
+            className="mt-6 max-w-md font-serif text-lg italic leading-relaxed text-bone/85"
+          >
+            {t.tagline}
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-4" data-hero-cta>
+            <a
+              href="#proyectos"
+              onClick={(e) => goTo(e, 'proyectos')}
+              className="group inline-flex min-h-[44px] items-center gap-4 border border-bone/30 px-8 py-3 font-mono text-xs uppercase tracking-wide3 text-bone transition-colors duration-500 hover:border-ember hover:text-ember"
+              data-cursor="hover"
+            >
+              {t.viewProjects}
+              <span className="transition-transform duration-500 ease-cine group-hover:translate-x-1.5">
+                →
+              </span>
+            </a>
+            <a
+              href="#contacto"
+              onClick={(e) => goTo(e, 'contacto')}
+              className="inline-flex min-h-[44px] items-center gap-3 px-6 py-3 font-mono text-xs uppercase tracking-wide3 text-smoke transition-colors duration-500 hover:text-bone"
+              data-cursor="hover"
+            >
+              {t.contactCta}
+            </a>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    /* La pista: 300vh de recorrido. El nombre `scroll-mt` no aplica aqui. */
+    /* La pista: 300svh de recorrido. */
     <section
       ref={trackRef}
       id="inicio"
@@ -208,18 +222,14 @@ export default function Hero({ lenisRef }) {
     >
       {/* El visor: queda pegado mientras se recorre la pista. */}
       <div className="sticky top-0 screen-h overflow-hidden">
-        {/* --- Escena 3D (z-5) ---
-            Se dibuja SOBRE los fondos y DEBAJO del texto. Aparece en el
-            tramo final del recorrido, cuando las fotos ya valieron: el
-            volumen es la sintesis, no la portada. La opacidad la controla el
-            scroll, asi que no hay "aparicion" brusca. */}
+        {/* --- Escena 3D (z-5) --- */}
         <motion.div
           className="absolute inset-0 z-[5]"
           style={{ opacity: sceneOpacity }}
           aria-hidden="true"
         >
-          {allow3D && !prefersReduced && !glFailed && (
-            <HeroScene3D progress={scrollYProgress} onError={() => setGlFailed(true)} />
+          {allow3D && !glFailed && (
+            <HeroScene3D progress={scrollYProgress} onError={onGlError} />
           )}
           {glFailed && (
             <SmartImage
@@ -233,32 +243,27 @@ export default function Hero({ lenisRef }) {
 
         {/* --- Fondos (z-0) --- */}
         <div className="absolute inset-0 z-0">
-          {SLIDES.map((slide, i) => (
+          {[fade1, fade2, fade3].map((fade, i) => (
             <motion.div
               key={i}
               className="absolute inset-0"
-              style={{ opacity: [o1, o2, o3][i], scale: [z1, z2, z3][i] }}
+              style={{ opacity: fade, scale: [scale1, scale2, scale3][i] }}
               aria-hidden={i !== 0}
             >
               <SmartImage
-                base={slide.src}
-                alt={i === 0 ? slide.alt : ''}
+                base={SLIDES[i].src}
+                alt={i === 0 ? SLIDES[i].alt : ''}
                 className="h-full w-full object-cover"
                 eager={i === 0}
                 sizes="100vw"
-                // Las tres superpuestas: la primera es la LCP, el resto no
-                // compite por el ancho de banda inicial.
                 fetchPriority={i === 0 ? 'high' : 'low'}
               />
             </motion.div>
           ))}
 
-          {/* Velo oscuro: sostiene el contraste del texto sobre la foto.
-              Se anima con el scroll para acompasar el cambio de imagen. */}
           <motion.div className="absolute inset-0 bg-void" style={{ opacity: veil }} />
           <div className="absolute inset-0 bg-gradient-to-t from-void via-void/10 to-void/30" />
 
-          {/* Grilla de plano arquitectonico */}
           <div className="rule-grid" aria-hidden="true">
             {[0, 1, 2, 3, 4].map((i) => (
               <span key={i} style={{ left: `${(i / 4) * 100}%` }} />
@@ -266,65 +271,59 @@ export default function Hero({ lenisRef }) {
           </div>
         </div>
 
-        {/* --- Contenido (z-10) --- */}
-        <div className="shell relative z-10 flex h-full flex-col justify-end pb-16 pt-32 md:pb-24">
+        {/* --- Contenido (z-10): un solo bloque visible a la vez --- */}
+        <div className="shell relative z-10 flex h-full flex-col justify-end pb-10 pt-28 md:pb-14" data-hero-content>
           {/* BLOQUE 1 — 0% a 30% */}
-          <motion.div style={{ opacity: b1Opacity, y: b1Y }} className="absolute inset-x-0 bottom-0">
-            <div className="shell pb-16 md:pb-24">
-              <div className="mb-8 flex flex-wrap items-center gap-3">
+          <HeroBlock opacity={b1Opacity} y={b1Y}>
+            <div className="shell pb-2">
+              <div className="mb-6 flex flex-wrap items-center gap-3" data-hero-kicker>
                 <span className="label border border-white/15 px-3 py-1.5 text-bone/80">
                   {t.portfolio}
                 </span>
                 <span className="label">{t.architecture}</span>
               </div>
 
-              {/* Titulo principal — SIN split de scroll, a proposito.
-
-                  Los bloques 2 y 3 si entran linea a linea con el scroll. Pero
-                  este titulo NO puede: es el ancla de la portada. Si lo
-                  partimos con mascaras, la linea arranca empujada hacia abajo
-                  (oculta) y el hero se ve VACIO al cargar, que es justo lo
-                  contrario de lo que queremos.
-
-                  Aqui la ventana de scroll termina ANTES del 0, asi que la
-                  linea ya esta en su sitio cuando el scroll es 0 y no vuelve
-                  a moverse. La estructura de mascaras se conserva, asi que el
-                  texto sigue siendo un <h1> semantico y el sitio abre con el
-                  logotipo presente. */}
-              <h1 className="display text-[19vw] leading-[0.82] sm:text-[15vw] md:text-[11vw] lg:text-[8.5vw] 3xl:text-[9rem]">
+              <h1
+                data-hero-title
+                className="display text-[clamp(3rem,min(11vw,17vh),10rem)] leading-[0.82]"
+              >
                 <SplitTitle
                   progress={scrollYProgress}
                   range={[-0.22, 0]}
                   stagger={0.4}
                   from={112}
-                  isStatic={prefersReduced}
                   lineClassName="text-shadow-cine"
                   lines={['CONTRA', '/LUZ']}
                 />
               </h1>
 
-              <p className="mt-8 max-w-md font-serif text-lg italic leading-relaxed text-bone/85 md:mt-10 md:text-2xl">
+              <p
+                data-hero-tag
+                className="mt-6 max-w-md font-serif text-lg italic leading-relaxed text-bone/85"
+              >
                 {t.tagline}
               </p>
             </div>
-          </motion.div>
+          </HeroBlock>
 
           {/* BLOQUE 2 — 35% a 65% */}
-          <motion.div style={{ opacity: b2Opacity, y: b2Y }} className="absolute inset-x-0 bottom-0">
-            <div className="shell pb-16 md:pb-24">
-              <div className="mb-8 flex flex-wrap items-center gap-3">
+          <HeroBlock opacity={b2Opacity} y={b2Y} startHidden>
+            <div className="shell pb-2">
+              <div className="mb-6 flex flex-wrap items-center gap-3" data-hero-kicker>
                 <span className="label border border-ember/40 px-3 py-1.5 text-ember">
                   {t.badge2}
                 </span>
                 <span className="label">{t.meta2}</span>
               </div>
 
-              <h2 className="display max-w-4xl text-[13vw] leading-[0.86] sm:text-[10vw] md:text-[7vw] lg:text-[5rem]">
+              <h2
+                data-hero-title
+                className="display max-w-5xl text-[clamp(2.25rem,min(7vw,12vh),5rem)] leading-[0.86]"
+              >
                 <SplitTitle
                   progress={scrollYProgress}
                   range={[0.35, 0.65]}
                   stagger={0.5}
-                  isStatic={prefersReduced}
                   lines={[
                     t.line21,
                     <>
@@ -335,27 +334,32 @@ export default function Hero({ lenisRef }) {
                 />
               </h2>
 
-              <p className="mt-8 max-w-lg font-serif text-lg italic leading-relaxed text-bone/85 md:text-2xl">
+              <p
+                data-hero-tag
+                className="mt-6 max-w-lg font-serif text-lg italic leading-relaxed text-bone/85"
+              >
                 {t.para2}
               </p>
             </div>
-          </motion.div>
+          </HeroBlock>
 
           {/* BLOQUE 3 — 70% a 100% */}
-          <motion.div style={{ opacity: b3Opacity, y: b3Y }} className="absolute inset-x-0 bottom-0">
-            <div className="shell pb-16 md:pb-24">
-              <div className="mb-8 flex flex-wrap items-center gap-3">
+          <HeroBlock opacity={b3Opacity} y={b3Y} startHidden>
+            <div className="shell pb-2">
+              <div className="mb-6 flex flex-wrap items-center gap-3" data-hero-kicker>
                 <span className="label border border-white/15 px-3 py-1.5 text-bone/80">
                   {t.badge3}
                 </span>
               </div>
 
-              <h2 className="display max-w-4xl text-[11vw] leading-[0.88] sm:text-[8.5vw] md:text-[6vw] lg:text-[4.2rem]">
+              <h2
+                data-hero-title
+                className="display max-w-5xl text-[clamp(2rem,min(6vw,11vh),4.2rem)] leading-[0.88]"
+              >
                 <SplitTitle
                   progress={scrollYProgress}
                   range={[0.7, 1]}
                   stagger={0.5}
-                  isStatic={prefersReduced}
                   lines={[
                     t.line31,
                     <span key="luz" className="font-serif italic text-ember">
@@ -365,19 +369,11 @@ export default function Hero({ lenisRef }) {
                 />
               </h2>
 
-              <div className="mt-10 flex flex-wrap items-center gap-4">
+              <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3" data-hero-cta>
                 <a
                   href="#proyectos"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const target = document.getElementById('proyectos');
-                    if (!target) return;
-                    const lenis = lenisRef?.current ?? window.__lenis;
-                    if (lenis) lenis.scrollTo(target, { duration: 1.6, offset: -10 });
-                    else target.scrollIntoView({ behavior: 'smooth' });
-                    window.history.replaceState(null, '', '#proyectos');
-                  }}
-                  className="group inline-flex items-center gap-4 border border-bone/30 px-8 py-4 font-mono text-xs uppercase tracking-wide3 text-bone transition-colors duration-500 hover:border-ember hover:text-ember"
+                  onClick={(e) => goTo(e, 'proyectos')}
+                  className="group inline-flex min-h-[44px] items-center gap-4 border border-bone/30 px-8 py-3 font-mono text-xs uppercase tracking-wide3 text-bone transition-colors duration-500 hover:border-ember hover:text-ember"
                   data-cursor="hover"
                 >
                   {t.viewProjects}
@@ -387,28 +383,21 @@ export default function Hero({ lenisRef }) {
                 </a>
                 <a
                   href="#contacto"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const target = document.getElementById('contacto');
-                    if (!target) return;
-                    const lenis = lenisRef?.current ?? window.__lenis;
-                    if (lenis) lenis.scrollTo(target, { duration: 1.6, offset: -10 });
-                    else target.scrollIntoView({ behavior: 'smooth' });
-                    window.history.replaceState(null, '', '#contacto');
-                  }}
-                  className="inline-flex items-center gap-3 px-6 py-4 font-mono text-xs uppercase tracking-wide3 text-smoke transition-colors duration-500 hover:text-bone"
+                  onClick={(e) => goTo(e, 'contacto')}
+                  className="inline-flex min-h-[44px] items-center gap-3 px-6 py-3 font-mono text-xs uppercase tracking-wide3 text-smoke transition-colors duration-500 hover:text-bone"
                   data-cursor="hover"
                 >
                   {t.contactCta}
                 </a>
               </div>
             </div>
-          </motion.div>
+          </HeroBlock>
         </div>
 
         {/* Indicador de scroll — desaparece al final del recorrido. */}
         <motion.div
-          className="absolute inset-x-0 bottom-6 z-10 flex items-center justify-center gap-3"
+          data-hero-hint
+          className="absolute inset-x-0 bottom-5 z-10 flex items-center justify-center gap-3"
           aria-hidden="true"
           style={{ opacity: scrollHintOpacity }}
         >
@@ -416,7 +405,7 @@ export default function Hero({ lenisRef }) {
           <span className="relative block h-14 w-px overflow-hidden bg-white/15">
             <motion.span
               className="absolute inset-x-0 top-0 h-5 bg-ember"
-              animate={prefersReduced ? {} : { y: [0, 350] }}
+              animate={{ y: [0, 350] }}
               transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
             />
           </span>

@@ -94,15 +94,17 @@ export default function ProjectImage({
       )}
 
       {/* Spotlight: la luz que sigue al cursor */}
+      {/* Caja de 680px centrada en el cursor con margenes negativos (no con
+          translate: GSAP escribe x/y en transform y lo pisaria). Con tamaño
+          0 el gradiente no tenia donde pintarse y la luz nunca se veia. */}
       {fine && (
         <div
           ref={spot}
           aria-hidden="true"
-          className="pointer-events-none absolute left-0 top-0 h-0 w-0 opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+          className="pointer-events-none absolute left-0 top-0 -ml-[340px] -mt-[340px] h-[680px] w-[680px] opacity-0 transition-opacity duration-700 group-hover:opacity-100"
           style={{
             background:
               'radial-gradient(340px circle at center, rgba(217,161,91,0.22), rgba(217,161,91,0.06) 40%, transparent 70%)',
-            transform: 'translate(-50%, -50%)',
             mixBlendMode: 'screen',
           }}
         />

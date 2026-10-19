@@ -45,7 +45,9 @@ export function useLenis() {
     }
 
     const lenis = new Lenis({
-      duration: 1.05,
+      // 1.2s: glide cinematográfico. Antes 1.05 se leía seco al recorrer
+      // planos seguidos; con mas duracion el avance se siente pesado.
+      duration: 1.2,
       // expo.out: arranca rapido, frena largo -> sensacion de masa sin perder
       // respuesta. Valores >1.2s se sienten como scroll roto.
       easing: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),

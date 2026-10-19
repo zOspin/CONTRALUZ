@@ -34,7 +34,9 @@ export default function SmartImage({
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
-        fetchPriority={fetchPriority}
+        // React 18 no conoce `fetchPriority` en camelCase: en minuscula pasa
+        // directo como atributo HTML sin warning.
+        fetchpriority={fetchPriority}
         onError={onError}
         className={className}
         {...rest}
