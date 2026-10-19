@@ -28,6 +28,7 @@ const IMAGENES = {
   'spa-piscina': ['Spa/002.jpg', 0.42],
   'spa-atardecer': ['Spa/001.jpg', 0.42],
   'spa-noche': ['Spa/003.jpg', 0.6],
+  'ana-frank-acceso': ['ANA FRANK/ACCESO.jpg', 0.66],
 };
 
 fs.mkdirSync(OUT, { recursive: true });

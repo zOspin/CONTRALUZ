@@ -1,525 +1,269 @@
 [
  {
   "id": "gancho",
-  "vozMs": 1925,
+  "vozMs": 1579,
   "palabras": [
    {
-    "text": "La",
-    "startMs": 103,
-    "endMs": 249
+    "text": "Y",
+    "startMs": 95,
+    "endMs": 162
    },
    {
-    "text": "arquitectura",
-    "startMs": 249,
-    "endMs": 874
-   },
-   {
-    "text": "no",
-    "startMs": 901,
-    "endMs": 981
-   },
-   {
-    "text": "se",
-    "startMs": 1007,
-    "endMs": 1127
-   },
-   {
-    "text": "mide",
-    "startMs": 1154,
-    "endMs": 1300
-   },
-   {
-    "text": "en",
-    "startMs": 1300,
-    "endMs": 1433
-   },
-   {
-    "text": "planos",
-    "startMs": 1460,
-    "endMs": 1925
-   }
-  ]
- },
- {
-  "id": "luz",
-  "vozMs": 3348,
-  "palabras": [
-   {
-    "text": "Se",
-    "startMs": 103,
-    "endMs": 316
-   },
-   {
-    "text": "mide",
-    "startMs": 343,
-    "endMs": 502
-   },
-   {
-    "text": "en",
-    "startMs": 502,
-    "endMs": 622
-   },
-   {
-    "text": "cómo",
-    "startMs": 635,
-    "endMs": 821
+    "text": "si",
+    "startMs": 184,
+    "endMs": 296
    },
    {
     "text": "la",
-    "startMs": 848,
-    "endMs": 941
+    "startMs": 329,
+    "endMs": 418
    },
    {
     "text": "luz",
-    "startMs": 968,
-    "endMs": 1180
+    "startMs": 441,
+    "endMs": 563
    },
    {
-    "text": "revela",
-    "startMs": 1234,
-    "endMs": 1593
+    "text": "diseñara",
+    "startMs": 597,
+    "endMs": 1021
    },
    {
-    "text": "el",
-    "startMs": 1593,
-    "endMs": 1646
+    "text": "tu",
+    "startMs": 1088,
+    "endMs": 1133
    },
    {
-    "text": "volumen",
-    "startMs": 1699,
-    "endMs": 2218
-   },
-   {
-    "text": "a",
-    "startMs": 2444,
-    "endMs": 2523
-   },
-   {
-    "text": "lo",
-    "startMs": 2550,
-    "endMs": 2643
-   },
-   {
-    "text": "largo",
-    "startMs": 2670,
-    "endMs": 2922
-   },
-   {
-    "text": "del",
-    "startMs": 2949,
-    "endMs": 3042
-   },
-   {
-    "text": "día",
-    "startMs": 3108,
-    "endMs": 3348
+    "text": "espacio",
+    "startMs": 1133,
+    "endMs": 1579
    }
   ]
  },
  {
-  "id": "sol",
-  "vozMs": 5143,
+  "id": "materia",
+  "vozMs": 2927,
   "palabras": [
    {
-    "text": "Por",
-    "startMs": 103,
-    "endMs": 263
+    "text": "Luz",
+    "startMs": 97,
+    "endMs": 410
    },
    {
-    "text": "eso",
-    "startMs": 263,
-    "endMs": 436
+    "text": "Sombra",
+    "startMs": 1264,
+    "endMs": 1632
    },
    {
-    "text": "cada",
-    "startMs": 502,
-    "endMs": 675
-   },
-   {
-    "text": "proyecto",
-    "startMs": 742,
-    "endMs": 1154
-   },
-   {
-    "text": "empieza",
-    "startMs": 1154,
-    "endMs": 1539
-   },
-   {
-    "text": "con",
-    "startMs": 1606,
-    "endMs": 1712
-   },
-   {
-    "text": "el",
-    "startMs": 1739,
-    "endMs": 1845
-   },
-   {
-    "text": "sol",
-    "startMs": 1845,
-    "endMs": 2218
-   },
-   {
-    "text": "modelamos",
-    "startMs": 2457,
-    "endMs": 2856
-   },
-   {
-    "text": "su",
-    "startMs": 2856,
-    "endMs": 2989
-   },
-   {
-    "text": "recorrido",
-    "startMs": 3029,
-    "endMs": 3494
-   },
-   {
-    "text": "antes",
-    "startMs": 3494,
-    "endMs": 3734
-   },
-   {
-    "text": "de",
-    "startMs": 3787,
-    "endMs": 3853
-   },
-   {
-    "text": "dibujar",
-    "startMs": 3880,
-    "endMs": 4212
-   },
-   {
-    "text": "una",
-    "startMs": 4226,
-    "endMs": 4398
-   },
-   {
-    "text": "sola",
-    "startMs": 4412,
-    "endMs": 4678
-   },
-   {
-    "text": "planta",
-    "startMs": 4744,
-    "endMs": 5143
+    "text": "Materia",
+    "startMs": 2492,
+    "endMs": 2927
    }
   ]
  },
  {
-  "id": "liuto",
-  "vozMs": 3241,
+  "id": "escuelas",
+  "vozMs": 1234,
   "palabras": [
    {
-    "text": "Un",
-    "startMs": 103,
-    "endMs": 289
-   },
-   {
-    "text": "centro",
-    "startMs": 303,
-    "endMs": 675
-   },
-   {
-    "text": "de",
-    "startMs": 715,
-    "endMs": 715
-   },
-   {
-    "text": "visitantes",
-    "startMs": 742,
-    "endMs": 1273
-   },
-   {
-    "text": "suspendido",
-    "startMs": 1287,
-    "endMs": 1819
-   },
-   {
-    "text": "entre",
-    "startMs": 1819,
-    "endMs": 2058
-   },
-   {
-    "text": "la",
-    "startMs": 2098,
-    "endMs": 2178
-   },
-   {
-    "text": "niebla",
-    "startMs": 2218,
-    "endMs": 2563
-   },
-   {
-    "text": "y",
-    "startMs": 2590,
-    "endMs": 2670
-   },
-   {
-    "text": "el",
-    "startMs": 2696,
-    "endMs": 2776
-   },
-   {
-    "text": "bosque",
-    "startMs": 2843,
-    "endMs": 3241
-   }
-  ]
- },
- {
-  "id": "hecate",
-  "vozMs": 2749,
-  "palabras": [
-   {
-    "text": "Una",
-    "startMs": 103,
-    "endMs": 329
-   },
-   {
-    "text": "casa",
-    "startMs": 396,
-    "endMs": 622
+    "text": "Escuelas",
+    "startMs": 96,
+    "endMs": 554
    },
    {
     "text": "que",
-    "startMs": 675,
-    "endMs": 742
+    "startMs": 598,
+    "endMs": 665
+   },
+   {
+    "text": "respiran",
+    "startMs": 699,
+    "endMs": 1234
+   }
+  ]
+ },
+ {
+  "id": "casas",
+  "vozMs": 1646,
+  "palabras": [
+   {
+    "text": "Casas",
+    "startMs": 95,
+    "endMs": 429
+   },
+   {
+    "text": "que",
+    "startMs": 474,
+    "endMs": 541
    },
    {
     "text": "se",
-    "startMs": 768,
-    "endMs": 874
+    "startMs": 563,
+    "endMs": 653
    },
    {
-    "text": "refugia",
-    "startMs": 914,
-    "endMs": 1313
+    "text": "esconden",
+    "startMs": 653,
+    "endMs": 1043
    },
    {
     "text": "en",
-    "startMs": 1313,
-    "endMs": 1380
+    "startMs": 1043,
+    "endMs": 1144
    },
    {
     "text": "el",
-    "startMs": 1393,
-    "endMs": 1486
+    "startMs": 1155,
+    "endMs": 1255
    },
    {
     "text": "bosque",
-    "startMs": 1553,
-    "endMs": 1832
-   },
-   {
-    "text": "sin",
-    "startMs": 1858,
-    "endMs": 2031
-   },
-   {
-    "text": "esconderse",
-    "startMs": 2058,
-    "endMs": 2749
+    "startMs": 1300,
+    "endMs": 1646
    }
   ]
  },
  {
-  "id": "kiralooro",
-  "vozMs": 3507,
+  "id": "paisajes",
+  "vozMs": 1635,
   "palabras": [
    {
-    "text": "Una",
-    "startMs": 103,
-    "endMs": 316
+    "text": "Paisajes",
+    "startMs": 95,
+    "endMs": 575
    },
    {
-    "text": "escuela",
-    "startMs": 316,
-    "endMs": 662
+    "text": "que",
+    "startMs": 619,
+    "endMs": 675
    },
    {
-    "text": "de",
-    "startMs": 702,
-    "endMs": 728
-   },
-   {
-    "text": "tierra",
-    "startMs": 795,
-    "endMs": 1047
+    "text": "flotan",
+    "startMs": 697,
+    "endMs": 1054
    },
    {
     "text": "en",
-    "startMs": 1061,
-    "endMs": 1127
-   },
-   {
-    "text": "Senegal",
-    "startMs": 1127,
-    "endMs": 1699
-   },
-   {
-    "text": "donde",
-    "startMs": 2045,
-    "endMs": 2244
+    "startMs": 1066,
+    "endMs": 1133
    },
    {
     "text": "la",
-    "startMs": 2284,
-    "endMs": 2377
+    "startMs": 1177,
+    "endMs": 1244
    },
    {
-    "text": "sombra",
-    "startMs": 2390,
-    "endMs": 2710
-   },
-   {
-    "text": "organiza",
-    "startMs": 2723,
-    "endMs": 3135
-   },
-   {
-    "text": "el",
-    "startMs": 3135,
-    "endMs": 3215
-   },
-   {
-    "text": "día",
-    "startMs": 3268,
-    "endMs": 3507
+    "text": "niebla",
+    "startMs": 1289,
+    "endMs": 1635
    }
   ]
  },
  {
-  "id": "espacios",
-  "vozMs": 3255,
+  "id": "cifras",
+  "vozMs": 3482,
   "palabras": [
    {
-    "text": "Espacios",
-    "startMs": 103,
-    "endMs": 688
+    "text": "Doce",
+    "startMs": 97,
+    "endMs": 376
    },
    {
-    "text": "para",
-    "startMs": 755,
-    "endMs": 888
+    "text": "años",
+    "startMs": 376,
+    "endMs": 778
    },
    {
-    "text": "aprender",
-    "startMs": 888,
-    "endMs": 1446
-   },
-   {
-    "text": "para",
-    "startMs": 1739,
-    "endMs": 1858
-   },
-   {
-    "text": "habitar",
-    "startMs": 1858,
-    "endMs": 2284
+    "text": "Treinta",
+    "startMs": 1574,
+    "endMs": 1908
    },
    {
     "text": "y",
-    "startMs": 2297,
-    "endMs": 2364
+    "startMs": 1953,
+    "endMs": 1998
    },
    {
-    "text": "para",
-    "startMs": 2430,
-    "endMs": 2590
+    "text": "ocho",
+    "startMs": 2020,
+    "endMs": 2232
    },
    {
-    "text": "descansar",
-    "startMs": 2643,
-    "endMs": 3255
+    "text": "proyectos",
+    "startMs": 2288,
+    "endMs": 2746
+   },
+   {
+    "text": "construidos",
+    "startMs": 2779,
+    "endMs": 3482
    }
   ]
  },
  {
-  "id": "cierre",
-  "vozMs": 3657,
+  "id": "marca",
+  "vozMs": 3195,
   "palabras": [
    {
     "text": "Contraluz",
-    "startMs": 103,
-    "endMs": 848
+    "startMs": 95,
+    "endMs": 742
    },
    {
     "text": "Arquitectura",
-    "startMs": 1862,
-    "endMs": 2553
+    "startMs": 1565,
+    "endMs": 2179
    },
    {
     "text": "moldeada",
-    "startMs": 2580,
-    "endMs": 2992
+    "startMs": 2212,
+    "endMs": 2603
    },
    {
     "text": "por",
-    "startMs": 3058,
-    "endMs": 3165
+    "startMs": 2670,
+    "endMs": 2771
    },
    {
     "text": "la",
-    "startMs": 3192,
-    "endMs": 3298
+    "startMs": 2782,
+    "endMs": 2871
    },
    {
     "text": "luz",
-    "startMs": 3324,
-    "endMs": 3657
+    "startMs": 2893,
+    "endMs": 3195
    }
   ]
  },
  {
   "id": "cta",
-  "vozMs": 3561,
+  "vozMs": 2271,
   "palabras": [
    {
-    "text": "Conoce",
-    "startMs": 103,
-    "endMs": 515
-   },
-   {
-    "text": "nuestros",
-    "startMs": 555,
-    "endMs": 888
-   },
-   {
-    "text": "proyectos",
-    "startMs": 954,
-    "endMs": 1566
+    "text": "Escríbenos",
+    "startMs": 95,
+    "endMs": 954
    },
    {
     "text": "y",
-    "startMs": 1832,
-    "endMs": 1912
+    "startMs": 1211,
+    "endMs": 1266
    },
    {
-    "text": "escríbenos",
-    "startMs": 1912,
-    "endMs": 2510
+    "text": "diseñemos",
+    "startMs": 1322,
+    "endMs": 1836
    },
    {
-    "text": "para",
-    "startMs": 2577,
-    "endMs": 2723
-   },
-   {
-    "text": "hablar",
-    "startMs": 2723,
-    "endMs": 2989
-   },
-   {
-    "text": "del",
-    "startMs": 3029,
-    "endMs": 3175
+    "text": "el",
+    "startMs": 1847,
+    "endMs": 1947
    },
    {
     "text": "tuyo",
-    "startMs": 3255,
-    "endMs": 3561
+    "startMs": 2003,
+    "endMs": 2271
    }
   ]
  }

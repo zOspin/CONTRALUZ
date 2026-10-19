@@ -1,54 +1,48 @@
 {
-  "voz": "es-CO-GonzaloNeural",
-  "velocidad": "-6%",
+  "voz": "es-CO-SalomeNeural",
+  "velocidad": "+12%",
+  "tono": "+2Hz",
+  "bpm": 124,
   "escenas": [
     {
       "id": "gancho",
-      "texto": "La arquitectura no se mide en planos.",
-      "imagenes": ["hecate-noche"]
+      "beats": 4,
+      "texto": "¿Y si la luz diseñara tu espacio?"
     },
     {
-      "id": "luz",
-      "texto": "Se mide en cómo la luz revela el volumen, a lo largo del día.",
-      "imagenes": ["liuto-niebla"]
+      "id": "materia",
+      "beats": 8,
+      "texto": "Luz. Sombra. Materia."
     },
     {
-      "id": "sol",
-      "texto": "Por eso cada proyecto empieza con el sol: modelamos su recorrido antes de dibujar una sola planta.",
-      "imagenes": ["kiralooro-luz"]
+      "id": "escuelas",
+      "beats": 4,
+      "texto": "Escuelas que respiran."
     },
     {
-      "id": "liuto",
-      "texto": "Un centro de visitantes suspendido entre la niebla y el bosque.",
-      "imagenes": ["liuto-lago"],
-      "rotulo": "Liuto — Hong Kong"
+      "id": "casas",
+      "beats": 4,
+      "texto": "Casas que se esconden en el bosque."
     },
     {
-      "id": "hecate",
-      "texto": "Una casa que se refugia en el bosque sin esconderse.",
-      "imagenes": ["hecate-cascada"],
-      "rotulo": "Luz de Hecate"
+      "id": "paisajes",
+      "beats": 4,
+      "texto": "Paisajes que flotan en la niebla."
     },
     {
-      "id": "kiralooro",
-      "texto": "Una escuela de tierra en Senegal, donde la sombra organiza el día.",
-      "imagenes": ["kiralooro-entrada"],
-      "rotulo": "Kiralooro — Senegal"
+      "id": "cifras",
+      "beats": 8,
+      "texto": "Doce años. Treinta y ocho proyectos construidos."
     },
     {
-      "id": "espacios",
-      "texto": "Espacios para aprender, para habitar y para descansar.",
-      "imagenes": ["preescolar-patio", "hecate-vertical", "spa-piscina"]
-    },
-    {
-      "id": "cierre",
-      "texto": "Contraluz. Arquitectura moldeada por la luz.",
-      "imagenes": ["spa-atardecer"]
+      "id": "marca",
+      "beats": 8,
+      "texto": "Contraluz. Arquitectura moldeada por la luz."
     },
     {
       "id": "cta",
-      "texto": "Conoce nuestros proyectos, y escríbenos para hablar del tuyo.",
-      "imagenes": ["spa-noche"]
+      "beats": 6,
+      "texto": "Escríbenos, y diseñemos el tuyo."
     }
   ]
 }

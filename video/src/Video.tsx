@@ -1,38 +1,47 @@
-import { TransitionSeries, linearTiming } from "@remotion/transitions";
-import { fade } from "@remotion/transitions/fade";
-import { Fragment } from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { ESCENAS, TRANSICION } from "./datos";
-import { Escena, EscenaCierre, EscenaCta } from "./Escena";
+import { Audio } from "@remotion/media";
+import {
+  AbsoluteFill,
+  Sequence,
+  staticFile,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
+import { ENTRADA_VOZ_MS, ESCENAS, FPS, TRAMOS_VOZ, escena } from "./datos";
+import { Casas, Cifras, Cta, Escuelas, Gancho, Marca, Materia, Paisajes } from "./escenas";
 import { COLOR, FUENTE, MARGEN } from "./tema";
 
-/** Marca fija arriba a la izquierda (se oculta en el cierre, que ya la muestra grande). */
-const Marca: React.FC = () => {
+/** Marca y numero de escena arriba; se ocultan cuando el logo ocupa la pantalla. */
+const Cabecera: React.FC = () => {
   const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
-  const cierre = durationInFrames - ESCENAS[ESCENAS.length - 1].frames - ESCENAS[ESCENAS.length - 2].frames;
+  const marca = escena("marca");
+  const actual = ESCENAS.findIndex((e) => frame >= e.desde && frame < e.desde + e.frames);
+  const visible =
+    frame >= 12 && !(frame >= marca.desde && frame < marca.desde + marca.frames) ? 1 : 0;
   return (
     <div
       style={{
         position: "absolute",
         left: MARGEN.lado,
+        right: MARGEN.lado,
         top: MARGEN.arriba,
-        fontFamily: FUENTE.display,
-        fontSize: 58,
-        letterSpacing: "0.02em",
-        color: COLOR.bone,
-        opacity: interpolate(frame, [cierre, cierre + 10], [1, 0], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        }),
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        opacity: visible,
       }}
     >
-      CONTRA<span style={{ color: COLOR.ember }}>/</span>LUZ
+      <div style={{ fontFamily: FUENTE.display, fontSize: 62, color: COLOR.bone }}>
+        CONTRA<span style={{ color: COLOR.ember }}>/</span>LUZ
+      </div>
+      <div style={{ fontFamily: FUENTE.mono, fontSize: 34, letterSpacing: "0.2em", color: COLOR.bone }}>
+        <span style={{ color: COLOR.ember }}>{String(Math.max(1, actual + 1)).padStart(2, "0")}</span>
+        {" / "}
+        {String(ESCENAS.length).padStart(2, "0")}
+      </div>
     </div>
   );
 };
 
-/** Barra fina de progreso abajo: el recorrido del video, como en la web. */
 const Progreso: React.FC = () => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
@@ -42,7 +51,7 @@ const Progreso: React.FC = () => {
         position: "absolute",
         left: 0,
         bottom: 0,
-        height: 6,
+        height: 8,
         width: "100%",
         background: COLOR.ember,
         transformOrigin: "left",
@@ -52,32 +61,58 @@ const Progreso: React.FC = () => {
   );
 };
 
+/** La musica baja debajo de la voz y sube en los huecos. */
+const volumenMusica = (f: number) => {
+  const hablando = TRAMOS_VOZ.some(([a, b]) => f >= a - 3 && f <= b + 4);
+  return hablando ? 0.32 : 0.75;
+};
+
 export const Video: React.FC = () => {
+  const { durationInFrames } = useVideoConfig();
+  const voz = Math.round((ENTRADA_VOZ_MS / 1000) * FPS);
   return (
     <AbsoluteFill style={{ backgroundColor: COLOR.void }}>
-      <TransitionSeries name="Escenas">
-        {ESCENAS.map((e, i) => (
-          <Fragment key={e.id}>
-            {i > 0 ? (
-              <TransitionSeries.Transition
-                presentation={fade()}
-                timing={linearTiming({ durationInFrames: TRANSICION })}
-              />
-            ) : null}
-            <TransitionSeries.Sequence name={e.id} durationInFrames={e.frames}>
-              {e.id === "cierre" ? (
-                <EscenaCierre escena={e} />
-              ) : e.id === "cta" ? (
-                <EscenaCta escena={e} />
-              ) : (
-                <Escena escena={e} />
-              )}
-            </TransitionSeries.Sequence>
-          </Fragment>
-        ))}
-      </TransitionSeries>
-      <Marca />
+      {/* Escenas: cortes secos sobre la grilla de beats */}
+      <Sequence name="Gancho" from={escena("gancho").desde} durationInFrames={escena("gancho").frames}>
+        <Gancho />
+      </Sequence>
+      <Sequence name="Materia" from={escena("materia").desde} durationInFrames={escena("materia").frames}>
+        <Materia />
+      </Sequence>
+      <Sequence name="Escuelas" from={escena("escuelas").desde} durationInFrames={escena("escuelas").frames}>
+        <Escuelas />
+      </Sequence>
+      <Sequence name="Casas" from={escena("casas").desde} durationInFrames={escena("casas").frames}>
+        <Casas />
+      </Sequence>
+      <Sequence name="Paisajes" from={escena("paisajes").desde} durationInFrames={escena("paisajes").frames}>
+        <Paisajes />
+      </Sequence>
+      <Sequence name="Cifras" from={escena("cifras").desde} durationInFrames={escena("cifras").frames}>
+        <Cifras />
+      </Sequence>
+      <Sequence name="Marca" from={escena("marca").desde} durationInFrames={escena("marca").frames}>
+        <Marca />
+      </Sequence>
+      <Sequence name="Cta" from={escena("cta").desde} durationInFrames={escena("cta").frames}>
+        <Cta />
+      </Sequence>
+
+      <Cabecera />
       <Progreso />
+
+      {/* Audio: musica con ducking, voz por escena y whoosh antes de cada corte */}
+      <Audio name="Musica" src={staticFile("musica.wav")} volume={(f) => volumenMusica(f)} durationInFrames={durationInFrames} />
+      {ESCENAS.map((e) => (
+        <Sequence key={`voz-${e.id}`} name={`Voz ${e.id}`} from={e.desde + voz} layout="none">
+          <Audio src={staticFile(`voz/${e.id}.mp3`)} volume={1} />
+        </Sequence>
+      ))}
+      {ESCENAS.slice(1).map((e) => (
+        <Sequence key={`sfx-${e.id}`} name={`Whoosh ${e.id}`} from={Math.max(0, e.desde - 7)} layout="none">
+          <Audio src="https://remotion.media/whoosh.wav" volume={0.3} />
+        </Sequence>
+      ))}
     </AbsoluteFill>
   );
 };

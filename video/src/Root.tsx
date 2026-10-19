@@ -3,9 +3,9 @@ import { DURACION_TOTAL, FPS } from "./datos";
 import { Video } from "./Video";
 
 /**
- * Video de marketing vertical (reels/TikTok), 1080x1920.
- * La duracion sale de la voz generada: si cambias guion.json, corre
- * `python scripts/voz.py` y el video se ajusta solo.
+ * Reel de marketing vertical (Instagram/TikTok), 1080x1920, cortes al beat.
+ * La duracion sale de los beats de guion.json: si lo cambias, corre
+ * `python scripts/voz.py` y `python scripts/musica.py`.
  */
 export const RemotionRoot: React.FC = () => {
   return (
