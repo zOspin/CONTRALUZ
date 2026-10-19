@@ -49,11 +49,14 @@ export function useLenis() {
       // planos seguidos; con mas duracion el avance se siente pesado.
       duration: 1.2,
       // expo.out: arranca rapido, frena largo -> sensacion de masa sin perder
-      // respuesta. Valores >1.2s se sienten como scroll roto.
+      // respuesta. Mas de ~1.3s se siente como scroll roto: para frenar se
+      // baja la distancia por gesto (multiplicadores), no la duracion.
       easing: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 1.5,
+      // 0.6: cada muesca de rueda avanza ~60% de lo nativo. Con 1 el sitio
+      // se recorria demasiado rapido para leer las fotos.
+      wheelMultiplier: 0.6,
+      touchMultiplier: 1,
       // Un solo rAF, el de abajo.
       autoRaf: false,
     });
