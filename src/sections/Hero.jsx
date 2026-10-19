@@ -36,6 +36,13 @@ import { useLang, UI } from '../context/LanguageContext';
  *   ultrawide (min-aspect-ratio: 21/9).
  */
 
+/**
+ * Escena 3D procedural al cierre del hero. Apagada: tapaba la ultima foto
+ * con volumenes casi negros que no se leian como arquitectura. Para
+ * reactivarla (p.ej. con un .glb real del proyecto) basta con ponerla en true.
+ */
+const SHOW_3D = false;
+
 const RANGES = {
   block1: [0, 0.3],
   block2: [0.35, 0.65],
@@ -68,7 +75,9 @@ function HeroBlock({ opacity, y, startHidden = false, children }) {
   return (
     <motion.div
       style={{ opacity, y, visibility, pointerEvents }}
-      className={`absolute inset-x-0 bottom-0 ${startHidden ? 'invisible' : ''}`}
+      // bottom-24 en movil: deja libre el indicador de scroll (antes la frase
+      // quedaba debajo de el). En md+ el indicador va centrado y no choca.
+      className={`absolute inset-x-0 bottom-24 md:bottom-6 ${startHidden ? 'invisible' : ''}`}
     >
       {children}
     </motion.div>
@@ -106,8 +115,9 @@ export default function Hero({ lenisRef }) {
 
   const fade1 = useTransform(scrollYProgress, [0, 0.22, 0.34], [1, 1, 0]);
   const fade2 = useTransform(scrollYProgress, [0.3, 0.46, 0.66, 0.78], [0, 1, 1, 0]);
-    /* La tercera foto cae a 0 en el tramo final: deja ver el render 3D. */
-  const fade3 = useTransform(scrollYProgress, [0.72, 0.86, 0.95], [0, 1, 0]);
+  /* La tercera foto sostiene el cierre: antes caia a 0 para dejar ver el
+     render 3D y el final quedaba en negro con volumenes sin leer. */
+  const fade3 = useTransform(scrollYProgress, [0.72, 0.86, 1], [0, 1, 1]);
 
   /* ---- Contenido: entrada y salida por bloques ---- */
   const b1Opacity = useTransform(scrollYProgress, [0, 0.06, 0.24, 0.3], [1, 1, 1, 0]);
@@ -123,12 +133,13 @@ export default function Hero({ lenisRef }) {
   const veil = useTransform(
     scrollYProgress,
     [0, 0.2, 0.8, 1],
-    [0.5, 0.2, 0.2, 0.55]
+    // Cierre a 0.4: la foto final se ve; el texto contrasta por el degradado.
+    [0.5, 0.2, 0.2, 0.4]
   );
 
   const scrollHintOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
 
-  /* ---- Escena 3D: entra al final ---- */
+  /* ---- Escena 3D: entra al final (solo si SHOW_3D) ---- */
   const sceneOpacity = useTransform(scrollYProgress, [0.55, 0.78, 1], [0, 0.85, 1]);
 
   const goTo = (e, id) => {
@@ -228,10 +239,10 @@ export default function Hero({ lenisRef }) {
           style={{ opacity: sceneOpacity }}
           aria-hidden="true"
         >
-          {allow3D && !glFailed && (
+          {SHOW_3D && allow3D && !glFailed && (
             <HeroScene3D progress={scrollYProgress} onError={onGlError} />
           )}
-          {glFailed && (
+          {SHOW_3D && glFailed && (
             <SmartImage
               base="/proyectos/liuto-01.jpg"
               alt=""
@@ -358,7 +369,10 @@ export default function Hero({ lenisRef }) {
               >
                 <SplitTitle
                   progress={scrollYProgress}
-                  range={[0.7, 1]}
+                  // Termina en 0.84: las dos lineas quedan armadas antes del
+                  // final de la pista (con [0.7, 1] "La luz no." solo se
+                  // completaba en el ultimo pixel de scroll).
+                  range={[0.66, 0.84]}
                   stagger={0.5}
                   lines={[
                     t.line31,
