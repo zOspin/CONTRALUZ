@@ -67,7 +67,7 @@ export default function ProjectDetail() {
     { label: t.specYear, value: project.year },
     { label: t.specCategory, value: project.category },
     { label: t.specStatus, value: project.status },
-  ];
+  ].filter((s) => s.value); // campos sin confirmar no se muestran
 
   return (
     <article ref={root} className="pt-[72px]">
