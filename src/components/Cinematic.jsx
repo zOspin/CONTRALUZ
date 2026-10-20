@@ -320,7 +320,7 @@ export default function Cinematic({ lenisRef }) {
           aria-label={t.projects}
           className="absolute right-0 top-1/2 z-30 hidden -translate-y-1/2 md:block"
         >
-          <ul className="shell space-y-3 pr-20 text-right lg:pr-16">
+          <ul className="shell space-y-3 text-right">
             {index.map(({ projectId, first }, k) => {
               const p = localizeProject(projects.find((p) => p.id === projectId), lang);
               const active = projectId === activeProject;
@@ -378,8 +378,7 @@ export default function Cinematic({ lenisRef }) {
         >
           <span className="label">{t.scroll}</span>
         </motion.div>
-        {/* pr extra: la barra lateral fija (w-12 / md:w-16) tapaba el boton. */}
-        <div className="shell absolute inset-x-0 bottom-[9vh] z-30 flex justify-end pr-16 md:pr-20 lg:pr-16">
+        <div className="shell absolute inset-x-0 bottom-[9vh] z-30 flex justify-end">
           <a
             href="#proyectos"
             onClick={skip}

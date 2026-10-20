@@ -59,8 +59,10 @@ export default function App() {
 
       <PageTransition locationKey={location.pathname} />
 
+      {/* pr = ancho de la barra lateral fija (w-12 / md:w-16): el contenido
+          termina antes de ella y el .shell conserva sus margenes simetricos. */}
       <main
-        className={`relative z-10 ${fine && !reduced ? 'cursor-none-lg' : ''}`}
+        className={`relative z-10 pr-12 md:pr-16 ${fine && !reduced ? 'cursor-none-lg' : ''}`}
       >
         <Routes>
           <Route path="/" element={<Home lenisRef={lenisRef} scrollTo={scrollTo} />} />

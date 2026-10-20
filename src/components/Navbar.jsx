@@ -109,7 +109,7 @@ export default function Navbar({ scrollTo, lenisRef }) {
         }`}
       >
         <nav
-          className="shell flex h-[72px] items-center justify-between pr-14 md:pr-16"
+          className="shell flex h-[72px] items-center justify-between pr-[4.5rem] md:pr-[6.5rem] lg:pr-32"
           aria-label={t.nav}
         >
           <Link
