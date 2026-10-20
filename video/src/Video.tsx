@@ -9,6 +9,7 @@ import {
 } from "remotion";
 import { ENTRADA_VOZ_MS, ESCENAS, FPS, TRAMOS_VOZ, escena } from "./datos";
 import { Casas, Cta, Escuelas, Gancho, Marca, Materia, Paisajes } from "./escenas";
+import { Sonido } from "./Sonido";
 import { COLOR, FUENTE, MARGEN } from "./tema";
 
 /** Marca y numero de escena arriba; se ocultan cuando el logo ocupa la pantalla. */
@@ -62,8 +63,13 @@ const Progreso: React.FC = () => {
 
 /** La musica baja debajo de la voz y sube en los huecos. */
 const volumenMusica = (f: number) => {
-  const hablando = TRAMOS_VOZ.some(([a, b]) => f >= a - 3 && f <= b + 4);
-  return hablando ? 0.32 : 0.75;
+  // Distancia (en frames) al tramo de voz mas cercano: 0 dentro de la voz.
+  const dist = Math.min(
+    ...TRAMOS_VOZ.map(([a, b]) => (f < a ? a - f : f > b ? f - b : 0)),
+  );
+  // Baja a 0.34 bajo la voz y sube a 0.8 en 6 frames, sin saltos.
+  const k = Math.min(1, Math.max(0, (dist - 2) / 6));
+  return 0.34 + (0.8 - 0.34) * k;
 };
 
 export const Video: React.FC = () => {
@@ -97,18 +103,14 @@ export const Video: React.FC = () => {
       <Cabecera />
       <Progreso />
 
-      {/* Audio: musica con ducking, voz por escena y whoosh antes de cada corte */}
+      {/* Audio: musica con ducking, voz por escena y diseno sonoro */}
       <Audio name="Musica" src={staticFile("musica.wav")} volume={(f) => volumenMusica(f)} durationInFrames={durationInFrames} />
       {ESCENAS.map((e) => (
         <Sequence key={`voz-${e.id}`} name={`Voz ${e.id}`} from={e.desde + voz} layout="none">
           <Audio src={staticFile(`voz/${e.id}.mp3`)} volume={1} />
         </Sequence>
       ))}
-      {ESCENAS.slice(1).map((e) => (
-        <Sequence key={`sfx-${e.id}`} name={`Whoosh ${e.id}`} from={Math.max(0, e.desde - 7)} layout="none">
-          <Audio src="https://remotion.media/whoosh.wav" volume={0.3} />
-        </Sequence>
-      ))}
+      <Sonido />
     </AbsoluteFill>
   );
 };
