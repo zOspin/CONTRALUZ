@@ -3,16 +3,10 @@ import gsap from 'gsap';
 import SectionHeading from '../components/SectionHeading';
 import { useReducedMotion, useCoarse } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
-import { EMAIL, INSTAGRAM } from '../data/contacto';
+import { EMAIL } from '../data/contacto';
 import InstagramLink from '../components/InstagramLink';
 
 const PHONE = '+57 604 123 4567';
-
-const SOCIALS = [
-  { label: 'Instagram', href: INSTAGRAM.url },
-  { label: 'LinkedIn', href: 'https://linkedin.com/company/contraluz-arq' },
-  { label: 'Are.na', href: 'https://are.na/contraluz-arq' },
-];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -197,26 +191,6 @@ export default function Contact() {
               >
                 {PHONE}
               </a>
-            </div>
-
-            <div>
-              <span className="label">{t.socials}</span>
-              <ul className="mt-3 space-y-2">
-                {SOCIALS.map((s) => (
-                  <li key={s.label}>
-                    <a
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group inline-flex items-center gap-3 text-lg text-bone/80 transition-colors hover:text-ember"
-                      data-cursor="hover"
-                    >
-                      <span className="h-px w-0 bg-ember transition-[width] duration-400 ease-cine group-hover:w-8" />
-                      {s.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
             </div>
 
             <div className="pt-6">

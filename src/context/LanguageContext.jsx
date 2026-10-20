@@ -114,7 +114,6 @@ export const UI = {
     mailSubject: 'Contacto desde la web',
     directEmail: 'Email',
     directPhone: 'Teléfono',
-    socials: 'Redes',
     officeLabel: 'Estudio',
     officeCity: 'Medellín, Colombia',
     // Footer
@@ -216,7 +215,6 @@ export const UI = {
     mailSubject: 'Contact from the website',
     directEmail: 'Email',
     directPhone: 'Phone',
-    socials: 'Socials',
     officeLabel: 'Studio',
     officeCity: 'Medellín, Colombia',
     localTime: 'Local time',
