@@ -143,10 +143,7 @@ function CineCaption({ progress, index, caption }) {
     <div className="pointer-events-none absolute inset-x-0 bottom-[calc(9vh+4.5rem)] z-10 md:bottom-auto md:top-1/2 md:-translate-y-1/2">
       <motion.div className="shell" style={{ opacity, y, visibility }}>
         <div className="max-w-md">
-          <p className="label text-ember tabular-nums">
-            {String(index + 1).padStart(2, '0')} / {String(N).padStart(2, '0')}
-          </p>
-          <p className="display mt-3 text-[12vw] leading-[0.88] text-bone sm:text-[8vw] md:text-[5vw] 3xl:text-[6rem]">
+          <p className="display text-[12vw] leading-[0.88] text-bone sm:text-[8vw] md:text-[5vw] 3xl:text-[6rem]">
             {caption.name}
           </p>
           <p className="label mt-4 text-bone/70">
@@ -210,8 +207,6 @@ export default function Cinematic({ lenisRef }) {
   const barScale = useTransform(progress, [0, 0.03], [0, 1]);
   // Velo final: funde a negro antes de entregar al hero.
   const endVeil = useTransform(progress, [0.95, 1], [0, 1]);
-  // Hint de scroll: se apaga al avanzar.
-  const hintOpacity = useTransform(progress, [0, 0.04], [1, 0]);
 
   const scrollToY = (y, duration) => {
     const lenis = lenisRef?.current ?? window.__lenis;
@@ -362,22 +357,7 @@ export default function Cinematic({ lenisRef }) {
           style={{ scaleY: barScale }}
         />
 
-        {/* Kicker superior */}
-        <div className="shell absolute inset-x-0 top-[9vh] z-30 flex items-center gap-4">
-          <span className="label border border-ember/40 px-3 py-1.5 text-ember">{t.reelKicker}</span>
-          <span className="label tabular-nums">
-            {String(shot + 1).padStart(2, '0')} — {String(N).padStart(2, '0')}
-          </span>
-        </div>
-
-        {/* Hint + saltar */}
-        <motion.div
-          className="absolute inset-x-0 bottom-[9vh] z-30 flex items-center justify-center gap-3"
-          style={{ opacity: hintOpacity }}
-          aria-hidden="true"
-        >
-          <span className="label">{t.scroll}</span>
-        </motion.div>
+        {/* Saltar */}
         <div className="shell absolute inset-x-0 bottom-[9vh] z-30 flex justify-end">
           <a
             href="#proyectos"
