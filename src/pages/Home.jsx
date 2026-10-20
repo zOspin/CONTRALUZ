@@ -5,10 +5,9 @@ import Cinematic from '../components/Cinematic';
 import Projects from '../sections/Projects';
 import Studio from '../sections/Studio';
 import Contact from '../sections/Contact';
-import Footer from '../sections/Footer';
 
 /**
- * Home: recorrido (zoom por la luz) + proyectos + estudio + contacto + footer.
+ * Home: recorrido (zoom por la luz) + proyectos + estudio + contacto.
  * El scroll a hashes usa Lenis cuando esta disponible.
  */
 export default function Home({ lenisRef, scrollTo }) {
@@ -47,7 +46,6 @@ export default function Home({ lenisRef, scrollTo }) {
       <Projects />
       <Studio />
       <Contact />
-      <Footer scrollTo={scrollTo} lenisRef={lenisRef} />
     </>
   );
 }

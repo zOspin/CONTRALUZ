@@ -52,17 +52,16 @@ export default function App() {
       <ScrollProgress />
       <Navbar scrollTo={scrollTo} lenisRef={lenisRef} />
 
-      {/* Panel lateral: se abre al pasar el mouse por el borde derecho.
-          Va despues del Navbar en el DOM para que su z-[70]/z-[65] quede
-          por encima del header (z-40). */}
-      <SidePanel scrollTo={scrollTo} lenisRef={lenisRef} />
+      {/* Barra lateral (solo movil): Instagram + idioma. Va despues del
+          Navbar en el DOM para que su z-[70] quede por encima del header. */}
+      <SidePanel />
 
       <PageTransition locationKey={location.pathname} />
 
-      {/* pr = ancho de la barra lateral fija (w-12 / md:w-16): el contenido
+      {/* pr-12 = ancho de la barra lateral fija (solo movil): el contenido
           termina antes de ella y el .shell conserva sus margenes simetricos. */}
       <main
-        className={`relative z-10 pr-12 md:pr-16 ${fine && !reduced ? 'cursor-none-lg' : ''}`}
+        className={`relative z-10 pr-12 md:pr-0 ${fine && !reduced ? 'cursor-none-lg' : ''}`}
       >
         <Routes>
           <Route path="/" element={<Home lenisRef={lenisRef} scrollTo={scrollTo} />} />

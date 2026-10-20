@@ -6,6 +6,7 @@ import { useLang, UI } from '../context/LanguageContext';
 import { scrollToSection } from '../hooks/useLenis';
 import Logo from './Logo';
 import InstagramLink from './InstagramLink';
+import SelectorIdioma from './SelectorIdioma';
 import { EMAIL } from '../data/contacto';
 
 const LINKS = [
@@ -30,6 +31,29 @@ export default function Navbar({ scrollTo, lenisRef }) {
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
   const reduced = useReducedMotion();
+  const [activa, setActiva] = useState(null); // seccion visible (solo home)
+
+  // Marca en el menu la seccion que se esta viendo.
+  useEffect(() => {
+    if (!isHome) {
+      setActiva(null);
+      return;
+    }
+    const secciones = LINKS.map((l) => document.getElementById(l.id)).filter(Boolean);
+    if (!secciones.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActiva(e.target.id);
+          else setActiva((a) => (a === e.target.id ? null : a));
+        });
+      },
+      // Franja central de la pantalla: activa la seccion que la cruza.
+      { rootMargin: '-45% 0px -50% 0px' }
+    );
+    secciones.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [isHome]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -109,7 +133,7 @@ export default function Navbar({ scrollTo, lenisRef }) {
         }`}
       >
         <nav
-          className="shell flex h-[72px] items-center justify-between pr-[4.5rem] md:pr-[6.5rem] lg:pr-32"
+          className="shell flex h-[72px] items-center justify-between pr-[4.5rem] md:pr-10 lg:pr-16"
           aria-label={t.nav}
         >
           <Link
@@ -118,24 +142,62 @@ export default function Navbar({ scrollTo, lenisRef }) {
             aria-label="CONTRA/LUZ — inicio"
             data-cursor="hover"
           >
-            <Logo alt="" compacto className="w-[150px] md:w-[178px]" />
+            <Logo alt="" compacto className="w-[150px] md:w-[140px] lg:w-[178px]" />
           </Link>
 
-          <ul className="hidden items-center gap-10 md:flex">
-            {LINKS.map((l) => (
-              <li key={l.id}>
-                <a
-                  href={l.href}
-                  onClick={(e) => handleLink(e, l.id)}
-                  className="label group relative py-2 transition-colors hover:text-bone"
-                  data-cursor="hover"
-                >
-                  {t[l.key]}
-                  <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-ember transition-[width] duration-400 ease-cine group-hover:w-full" />
-                </a>
-              </li>
-            ))}
-          </ul>
+          {/* Escritorio: secciones numeradas, Contacto como boton, y a la
+              derecha Instagram + idioma (antes en la barra lateral). */}
+          <div className="hidden items-center gap-4 md:flex lg:gap-8">
+            <ul className="flex items-center gap-4 lg:gap-9">
+              {LINKS.map((l, i) => {
+                const actual = activa === l.id;
+                if (l.id === 'contacto') {
+                  return (
+                    <li key={l.id}>
+                      <a
+                        href={l.href}
+                        onClick={(e) => handleLink(e, l.id)}
+                        aria-current={actual ? 'location' : undefined}
+                        className={`inline-flex min-h-[44px] items-center border px-5 font-mono text-[11px] uppercase tracking-[0.28em] transition-colors duration-400 hover:border-ember hover:bg-ember hover:text-void ${
+                          actual ? 'border-ember bg-ember text-void' : 'border-ember/60 text-bone'
+                        }`}
+                        data-cursor="hover"
+                      >
+                        {t[l.key]}
+                      </a>
+                    </li>
+                  );
+                }
+                return (
+                  <li key={l.id}>
+                    <a
+                      href={l.href}
+                      onClick={(e) => handleLink(e, l.id)}
+                      aria-current={actual ? 'location' : undefined}
+                      className={`group relative inline-flex min-h-[44px] items-center gap-2 font-mono text-[11px] uppercase tracking-[0.28em] transition-colors duration-400 hover:text-bone ${
+                        actual ? 'text-bone' : 'text-bone/75'
+                      }`}
+                      data-cursor="hover"
+                    >
+                      <span className="hidden text-[10px] tracking-normal text-ember lg:inline">0{i + 1}</span>
+                      {t[l.key]}
+                      <span
+                        aria-hidden="true"
+                        className={`absolute bottom-2 left-0 h-px w-full origin-left bg-ember transition-transform duration-500 ease-cine group-hover:scale-x-100 ${
+                          actual ? 'scale-x-100' : 'scale-x-0'
+                        }`}
+                      />
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+            <span aria-hidden="true" className="h-5 w-px bg-white/15" />
+            <div className="flex items-center">
+              <InstagramLink iconClassName="h-5 w-5" className="h-11 w-11 text-bone/75 hover:text-ember" />
+              <SelectorIdioma />
+            </div>
+          </div>
 
           <button
             type="button"

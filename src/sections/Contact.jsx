@@ -5,6 +5,7 @@ import { useReducedMotion, useCoarse } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
 import { EMAIL } from '../data/contacto';
 import InstagramLink from '../components/InstagramLink';
+import Logo from '../components/Logo';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -35,6 +36,20 @@ export default function Contact() {
         ease: 'expo.out',
         scrollTrigger: { trigger: el, start: 'top 84%', once: true },
       });
+
+      // Logo de fondo en profundidad: sube mas lento que el scroll y se
+      // acerca un poco, como un plano lejano (solo transform y opacity).
+      gsap.fromTo(
+        '[data-logo-fondo]',
+        { yPercent: 35, scale: 0.94, opacity: 0 },
+        {
+          yPercent: 0,
+          scale: 1,
+          opacity: 1,
+          ease: 'none',
+          scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom bottom', scrub: true },
+        }
+      );
     }, root);
 
     return () => ctx.revert();
@@ -70,8 +85,18 @@ export default function Contact() {
   };
 
   return (
-    <section ref={root} id="contacto" className="relative scroll-mt-24 py-24 md:py-36">
-      <div className="shell">
+    <section ref={root} id="contacto" className="relative scroll-mt-24 overflow-hidden pt-24 md:pt-36">
+      {/* Logo grande al fondo, detras del contenido (antes en el footer). */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-28 z-0 flex justify-center px-6 md:bottom-16 md:px-10 lg:px-16"
+      >
+        <div data-logo-fondo className="w-full max-w-[1400px]">
+          <Logo alt="" className="w-full opacity-[0.07]" />
+        </div>
+      </div>
+
+      <div className="shell relative z-10">
         <SectionHeading num="03" title={t.contactTitle} subtitle={t.contactSubtitle} />
 
         <div className="grid grid-cols-1 gap-x-16 gap-y-16 lg:grid-cols-2">
@@ -191,6 +216,11 @@ export default function Contact() {
               </p>
             </div>
           </div>
+        </div>
+
+        <div className="mt-48 flex flex-col gap-2 border-t border-white/10 py-6 text-center md:mt-56 md:flex-row md:justify-between md:text-left lg:mt-72">
+          <p className="label">© {new Date().getFullYear()} CONTRA/LUZ</p>
+          <p className="label">{t.rights}</p>
         </div>
       </div>
     </section>

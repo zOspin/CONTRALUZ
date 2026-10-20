@@ -114,9 +114,7 @@ export const UI = {
     directEmail: 'Email',
     officeLabel: 'Estudio',
     officeCity: 'Medellín, Colombia',
-    // Footer
-    localTime: 'Hora local',
-    coords: 'Coord.',
+    // Cierre
     rights: 'Arquitectura moldeada por la luz',
     directContact: 'Contacto directo',
     // Detalle
@@ -217,8 +215,6 @@ export const UI = {
     directEmail: 'Email',
     officeLabel: 'Studio',
     officeCity: 'Medellín, Colombia',
-    localTime: 'Local time',
-    coords: 'Coord.',
     rights: 'Architecture shaped by light',
     directContact: 'Direct contact',
     backTo: '← Projects',
