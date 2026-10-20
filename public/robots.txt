@@ -1,2 +1,4 @@
-﻿User-agent: *
+User-agent: *
 Allow: /
+
+Sitemap: https://contraluz-olive.vercel.app/sitemap.xml

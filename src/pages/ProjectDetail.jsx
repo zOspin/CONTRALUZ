@@ -6,6 +6,7 @@ import ProjectImage from '../components/ProjectImage';
 import { useReducedMotion } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
 import { scrollToTop } from '../hooks/useLenis';
+import usePageMeta from '../hooks/usePageMeta';
 
 /**
  * Detalle de proyecto: galeria grande, descripcion y ficha tecnica.
@@ -19,6 +20,13 @@ export default function ProjectDetail() {
   const t = UI[lang];
   const raw = getProject(id);
   const project = localizeProject(raw, lang);
+
+  usePageMeta({
+    title: project ? `${project.name} — CONTRA/LUZ` : undefined,
+    description: project?.excerpt,
+    path: `/proyecto/${id}`,
+    image: project?.cover,
+  });
 
   useEffect(() => {
     scrollToTop(true);
