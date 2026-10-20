@@ -104,7 +104,7 @@ export const Video: React.FC = () => {
       <Progreso />
 
       {/* Audio: musica con ducking, voz por escena y diseno sonoro */}
-      <Audio name="Musica" src={staticFile("musica.wav")} volume={(f) => volumenMusica(f)} durationInFrames={durationInFrames} />
+      <Audio name="Musica" src={staticFile("musica.wav")} volume={(f) => volumenMusica(f) * Math.min(1, (durationInFrames - f) / F(24))} durationInFrames={durationInFrames} />
       {ESCENAS.map((e) => (
         <Sequence key={`voz-${e.id}`} name={`Voz ${e.id}`} from={e.desde + voz} layout="none">
           <Audio src={staticFile(`voz/${e.id}.mp3`)} volume={1} />

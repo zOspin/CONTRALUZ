@@ -11,7 +11,8 @@ grilla de beats que las escenas (cada corte cae en un golpe):
              sincopado con sidechain, acordes "stab" con eco y un
              gancho melodico desde "escuelas"
   marca      quiebre: pad abierto, bajo sostenido, subida al final
-  cta        ultimo drop y cierre con impacto y cola de reverb
+  cta        ultimo drop (8 beats) y cierre suave de 4 beats: pad y bajo
+             sostenido bajo el correo, con impacto y cola de reverb
 
 Escribe public/musica.wav (estereo, 44.1 kHz). Los efectos sueltos
 (whoosh, impactos, etc.) estan en scripts/sfx.py.
@@ -195,7 +196,9 @@ MOTIVO = [
 seg = lambda beat: beat * BEAT  # noqa: E731
 DROP1 = (inicio["materia"], inicio["marca"])
 QUIEBRE = (inicio["marca"], inicio["cta"])
-DROP2 = (inicio["cta"], TOTAL)
+# Ultimo drop de 8 beats y un cierre suave mientras se lee el contacto.
+OUTRO = TOTAL - 4
+DROP2 = (inicio["cta"], OUTRO)
 MELODIA_DESDE = inicio["escuelas"]
 
 bat, graves, armon, fx = Bus(), Bus(), Bus(), Bus()
@@ -234,8 +237,8 @@ for beat in range(TOTAL):
         for paso, n, largo in MOTIVO[compas % 4]:
             armon.add(lead(nota(n), largo * BEAT / 4 + 0.05), seg(beat + paso / 4), pan=0.1)
 
-# Quiebre: bajo largo y respirado.
-for beat in range(QUIEBRE[0], QUIEBRE[1], 4):
+# Quiebre y cierre: bajo largo y respirado.
+for beat in list(range(QUIEBRE[0], QUIEBRE[1], 4)) + list(range(OUTRO, TOTAL, 4)):
     ac = ACORDES[(beat // 4) % 4]
     graves.add(bajo(nota(ac[0]), BEAT * 4) * 0.8, seg(beat))
 
@@ -247,7 +250,7 @@ fx.add(subida(seg(2)), seg(QUIEBRE[0] - 2), 0.8)
 fx.add(impacto(3.0), seg(QUIEBRE[0]), 1.0)
 fx.add(subida(seg(4)), seg(DROP2[0] - 4), 0.85)
 fx.add(impacto(), seg(DROP2[0]), 0.8)
-fx.add(impacto(3.0), seg(TOTAL - 1), 0.9)
+fx.add(impacto(3.0), seg(OUTRO), 0.85)
 
 # Sidechain: graves y armonia respiran con el bombo.
 env = np.ones(N)
