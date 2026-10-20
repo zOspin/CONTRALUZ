@@ -4,6 +4,7 @@ import { useLenisScrollBridge } from '../hooks/useScrollBridge';
 import HeroScene3D from '../components/HeroScene3D';
 import SmartImage from '../components/SmartImage';
 import SplitTitle from '../components/SplitTitle';
+import Logo from '../components/Logo';
 import { useLang, UI } from '../context/LanguageContext';
 
 /**
@@ -181,13 +182,8 @@ export default function Hero({ lenisRef }) {
             <span className="label">{t.architecture}</span>
           </div>
 
-          <h1
-            data-hero-title
-            className="display text-[clamp(3rem,min(11vw,17vh),10rem)] leading-[0.82]"
-          >
-            CONTRA
-            <br />
-            <span className="slash">/</span>LUZ
+          <h1 data-hero-title>
+            <Logo className="w-[min(calc(100vw-6.5rem),52rem,95vh)]" />
           </h1>
 
           <p
@@ -294,17 +290,12 @@ export default function Hero({ lenisRef }) {
                 <span className="label">{t.architecture}</span>
               </div>
 
-              <h1
-                data-hero-title
-                className="display text-[clamp(3rem,min(11vw,17vh),10rem)] leading-[0.82]"
-              >
-                <SplitTitle
-                  progress={scrollYProgress}
-                  range={[-0.22, 0]}
-                  stagger={0.4}
-                  from={112}
-                  lineClassName="text-shadow-cine"
-                  lines={['CONTRA', '/LUZ']}
+              {/* Logotipo oficial como titulo: el alt mantiene el h1 legible
+                  para lectores de pantalla y buscadores. */}
+              <h1 data-hero-title>
+                <Logo
+                  className="w-[min(calc(100vw-6.5rem),52rem,95vh)]"
+                  style={{ filter: 'drop-shadow(0 6px 30px rgba(0,0,0,0.55))' }}
                 />
               </h1>
 

@@ -160,47 +160,6 @@
   ]
  },
  {
-  "id": "cifras",
-  "vozMs": 3482,
-  "palabras": [
-   {
-    "text": "Doce",
-    "startMs": 97,
-    "endMs": 376
-   },
-   {
-    "text": "años",
-    "startMs": 376,
-    "endMs": 778
-   },
-   {
-    "text": "Treinta",
-    "startMs": 1574,
-    "endMs": 1908
-   },
-   {
-    "text": "y",
-    "startMs": 1953,
-    "endMs": 1998
-   },
-   {
-    "text": "ocho",
-    "startMs": 2020,
-    "endMs": 2232
-   },
-   {
-    "text": "proyectos",
-    "startMs": 2288,
-    "endMs": 2746
-   },
-   {
-    "text": "construidos",
-    "startMs": 2779,
-    "endMs": 3482
-   }
-  ]
- },
- {
   "id": "marca",
   "vozMs": 3195,
   "palabras": [

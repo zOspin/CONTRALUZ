@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import { useReducedMotion } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
 import { scrollToSection } from '../hooks/useLenis';
+import Logo from './Logo';
 
 const LINKS = [
   { key: 'projects', href: '#proyectos', id: 'proyectos' },
@@ -112,11 +113,11 @@ export default function Navbar({ scrollTo, lenisRef }) {
         >
           <Link
             to="/"
-            className="display text-2xl leading-none tracking-tight md:text-[26px]"
+            className="block py-2"
             aria-label="CONTRA/LUZ — inicio"
             data-cursor="hover"
           >
-            CONTRA<span className="slash">/</span>LUZ
+            <Logo alt="" className="w-[124px] md:w-[148px]" />
           </Link>
 
           <ul className="hidden items-center gap-10 md:flex">

@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react';
-import { gsap, SplitText } from '../hooks/useAnimations';
+import { gsap } from '../hooks/useAnimations';
 import { useReducedMotion } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
+import Logo from './Logo';
 
 /**
  * Preloader — pantalla negra de entrada.
  *
  * Secuencia animada por etapas:
- *   1) la palabra CONTRA/LUZ letra por letra (blur + slide)
+ *   1) el logotipo se descubre de izquierda a derecha (blur + clip-path)
  *   2) los marcos superior e inferior (encuadre)
  *   3) el tagline en serif italic
  *   4) barra fina ember + contador 000/100
@@ -30,27 +31,18 @@ export default function Preloader({ onDone }) {
       return () => clearTimeout(timer);
     }
 
-    let splits = [];
-    const state = { n: 0 };
     const ctx = gsap.context(() => {
-      const logo = new SplitText('[data-preload-word]', {
-        type: 'chars',
-        charsClass: 'split-char',
-      });
-      splits = [logo];
-
       const tl = gsap.timeline({ onComplete: () => onDone?.() });
 
-      // 1) PRIMERO la palabra: entra letra por letra, con peso.
+      // 1) PRIMERO el logotipo: se descubre como si lo barriera la luz.
       tl.fromTo(
-        logo.chars,
-        { yPercent: 130, opacity: 0, filter: 'blur(14px)' },
+        '[data-preload-word]',
+        { clipPath: 'inset(0% 100% 0% 0%)', opacity: 0.2, filter: 'blur(10px)' },
         {
-          yPercent: 0,
+          clipPath: 'inset(0% 0% 0% 0%)',
           opacity: 1,
           filter: 'blur(0px)',
-          duration: 1.0,
-          stagger: 0.055,
+          duration: 1.3,
           ease: 'expo.out',
         }
       )
@@ -89,10 +81,7 @@ export default function Preloader({ onDone }) {
         .set(el, { display: 'none' });
     }, root);
 
-    return () => {
-      splits.forEach((s) => s.revert());
-      ctx.revert();
-    };
+    return () => ctx.revert();
   }, [onDone, reduced]);
 
   return (
@@ -111,13 +100,9 @@ export default function Preloader({ onDone }) {
 
       {/* Palabra central */}
       <div className="flex flex-col items-center text-center">
-        <p
-          data-preload-word
-          aria-hidden="true"
-          className="display text-[17vw] leading-[0.85] tracking-tight sm:text-[14vw] md:text-[10.5vw] lg:text-[8.5vw] 3xl:text-[10rem]"
-        >
-          CONTRA<span className="slash">/</span>LUZ
-        </p>
+        <div data-preload-word aria-hidden="true">
+          <Logo alt="" className="w-[80vw] max-w-[46rem]" />
+        </div>
         <p
           data-preload-tag
           className="mt-6 font-serif text-lg italic text-bone/60 md:text-2xl"

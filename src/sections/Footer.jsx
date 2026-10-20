@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useReducedMotion } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
+import Logo from '../components/Logo';
 
 /**
  * Footer minimalista con logo grande y reloj del visitante.
@@ -101,13 +102,9 @@ export default function Footer({ scrollTo, lenisRef }) {
         </div>
 
         <div className="mt-16 overflow-hidden md:mt-20">
-          <p
-            data-footer-reveal
-            className="display select-none text-[19vw] leading-[0.8] text-bone/[0.07] sm:text-[15vw] md:text-[11vw] 3xl:text-[12rem]"
-            aria-hidden="true"
-          >
-            CONTRA<span className="slash">/</span>LUZ
-          </p>
+          <div data-footer-reveal aria-hidden="true">
+            <Logo alt="" className="w-full max-w-[1400px] opacity-[0.07]" />
+          </div>
         </div>
 
         <div className="flex flex-col gap-2 border-t border-white/10 py-6 text-center md:flex-row md:justify-between md:text-left">

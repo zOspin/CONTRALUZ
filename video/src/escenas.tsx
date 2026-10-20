@@ -1,4 +1,4 @@
-import { AbsoluteFill, Easing, Sequence, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, Img, Sequence, interpolate, staticFile, useCurrentFrame } from "remotion";
 import { escena, framePalabra } from "./datos";
 import { Barrido, Destello, Foto, Grilla, Linea, Palabras, Velo } from "./efectos";
 import { COLOR, FUENTE, MARGEN } from "./tema";
@@ -248,99 +248,9 @@ export const Paisajes: React.FC = () => {
 };
 
 /* ---------------------------------------------------------------- */
-/* 6. CIFRAS: contadores sobre la grilla del plano                   */
+/* 6. MARCA: el logotipo se descubre de izquierda a derecha y lo     */
+/*    barre la luz                                                   */
 /* ---------------------------------------------------------------- */
-const Contador: React.FC<{ hasta: number; en: number; etiqueta: string }> = ({
-  hasta,
-  en,
-  etiqueta,
-}) => {
-  const frame = useCurrentFrame();
-  const valor = Math.round(
-    interpolate(frame, [en, en + 16], [0, hasta], { ...clamp, easing: Easing.out(Easing.cubic) }),
-  );
-  return (
-    <div
-      style={{
-        opacity: interpolate(frame, [en - 1, en + 2], [0, 1], clamp),
-        translate: interpolate(frame, [en, en + 8], ["0px 50px", "0px 0px"], { ...clamp, easing: SALIDA }),
-      }}
-    >
-      <div
-        style={{
-          fontFamily: FUENTE.display,
-          fontSize: 400,
-          lineHeight: 0.82,
-          color: COLOR.bone,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {String(valor).padStart(2, "0")}
-      </div>
-      <Linea en={en + 6} ancho={520} style={{ marginTop: 16 }} />
-      <div
-        style={{
-          marginTop: 22,
-          fontFamily: FUENTE.mono,
-          fontSize: 40,
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          color: COLOR.bone,
-        }}
-      >
-        {etiqueta}
-      </div>
-    </div>
-  );
-};
-
-export const Cifras: React.FC = () => {
-  const e = escena("cifras");
-  return (
-    <AbsoluteFill style={{ backgroundColor: COLOR.void }}>
-      <Foto src="preescolar-patio" frames={e.frames} oscurecer={0.78} golpe={false} />
-      <Grilla en={0} opacidad={0.14} />
-      <AbsoluteFill
-        style={{
-          justifyContent: "center",
-          gap: 120,
-          padding: `0 ${MARGEN.lado + 20}px`,
-        }}
-      >
-        <Contador hasta={12} en={framePalabra(e, 0)} etiqueta="Años de estudio" />
-        <Contador hasta={38} en={framePalabra(e, 2)} etiqueta="Proyectos construidos" />
-      </AbsoluteFill>
-      <Destello fuerza={0.5} />
-    </AbsoluteFill>
-  );
-};
-
-/* ---------------------------------------------------------------- */
-/* 7. MARCA: el logotipo se revela letra a letra y lo barre la luz   */
-/* ---------------------------------------------------------------- */
-const Letras: React.FC<{ texto: string; en: number; acento?: number }> = ({ texto, en, acento }) => {
-  const frame = useCurrentFrame();
-  return (
-    <div style={{ display: "flex", overflow: "hidden", paddingBottom: 8 }}>
-      {texto.split("").map((l, i) => (
-        <span
-          key={i}
-          style={{
-            display: "inline-block",
-            color: i === acento ? COLOR.ember : COLOR.bone,
-            translate: interpolate(frame, [en + i * 1.5, en + i * 1.5 + 10], ["0% 110%", "0% 0%"], {
-              ...clamp,
-              easing: SALIDA,
-            }),
-          }}
-        >
-          {l}
-        </span>
-      ))}
-    </div>
-  );
-};
-
 export const Marca: React.FC = () => {
   const e = escena("marca");
   const frame = useCurrentFrame();
@@ -351,11 +261,16 @@ export const Marca: React.FC = () => {
       </AbsoluteFill>
       <Grilla en={4} opacidad={0.08} />
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", paddingBottom: 120 }}>
-        <div style={{ fontFamily: FUENTE.display, fontSize: 290, lineHeight: 0.84, textAlign: "center" }}>
-          <Letras texto="CONTRA" en={2} />
-          <Letras texto="/LUZ" en={8} acento={0} />
-        </div>
-        <div style={{ marginTop: 60, width: 960 }}>
+        <Img
+          src={staticFile("logo/contraluz.png")}
+          style={{
+            width: 900,
+            clipPath: `inset(0 ${interpolate(frame, [2, 18], [100, 0], { ...clamp, easing: SALIDA })}% 0 0)`,
+            scale: interpolate(frame, [2, 40], [1.06, 1], { ...clamp, easing: SALIDA }),
+            filter: "drop-shadow(0 8px 40px rgba(0,0,0,0.6))",
+          }}
+        />
+        <div style={{ marginTop: 80, width: 960 }}>
           <Palabras
             palabras={e.palabras.slice(1)}
             acentos={["luz"]}
@@ -371,7 +286,7 @@ export const Marca: React.FC = () => {
 };
 
 /* ---------------------------------------------------------------- */
-/* 8. CTA: invitacion + correo                                       */
+/* 7. CTA: invitacion + correo                                       */
 /* ---------------------------------------------------------------- */
 export const Cta: React.FC = () => {
   const e = escena("cta");

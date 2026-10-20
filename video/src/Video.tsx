@@ -1,13 +1,14 @@
 import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
+  Img,
   Sequence,
   staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
 import { ENTRADA_VOZ_MS, ESCENAS, FPS, TRAMOS_VOZ, escena } from "./datos";
-import { Casas, Cifras, Cta, Escuelas, Gancho, Marca, Materia, Paisajes } from "./escenas";
+import { Casas, Cta, Escuelas, Gancho, Marca, Materia, Paisajes } from "./escenas";
 import { COLOR, FUENTE, MARGEN } from "./tema";
 
 /** Marca y numero de escena arriba; se ocultan cuando el logo ocupa la pantalla. */
@@ -30,9 +31,7 @@ const Cabecera: React.FC = () => {
         opacity: visible,
       }}
     >
-      <div style={{ fontFamily: FUENTE.display, fontSize: 62, color: COLOR.bone }}>
-        CONTRA<span style={{ color: COLOR.ember }}>/</span>LUZ
-      </div>
+      <Img src={staticFile("logo/contraluz.png")} style={{ width: 280 }} />
       <div style={{ fontFamily: FUENTE.mono, fontSize: 34, letterSpacing: "0.2em", color: COLOR.bone }}>
         <span style={{ color: COLOR.ember }}>{String(Math.max(1, actual + 1)).padStart(2, "0")}</span>
         {" / "}
@@ -87,9 +86,6 @@ export const Video: React.FC = () => {
       </Sequence>
       <Sequence name="Paisajes" from={escena("paisajes").desde} durationInFrames={escena("paisajes").frames}>
         <Paisajes />
-      </Sequence>
-      <Sequence name="Cifras" from={escena("cifras").desde} durationInFrames={escena("cifras").frames}>
-        <Cifras />
       </Sequence>
       <Sequence name="Marca" from={escena("marca").desde} durationInFrames={escena("marca").frames}>
         <Marca />
