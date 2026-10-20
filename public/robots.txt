@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://contraluz-olive.vercel.app/sitemap.xml
+Sitemap: https://contraluz-sandy.vercel.app/sitemap.xml
