@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Hero from '../sections/Hero';
 import Cinematic from '../components/Cinematic';
 import Projects from '../sections/Projects';
 import Studio from '../sections/Studio';
@@ -9,7 +8,7 @@ import Contact from '../sections/Contact';
 import Footer from '../sections/Footer';
 
 /**
- * Home: hero + proyectos + estudio + contacto + footer.
+ * Home: recorrido (zoom por la luz) + proyectos + estudio + contacto + footer.
  * El scroll a hashes usa Lenis cuando esta disponible.
  */
 export default function Home({ lenisRef, scrollTo }) {
@@ -41,8 +40,10 @@ export default function Home({ lenisRef, scrollTo }) {
 
   return (
     <>
+      {/* Titulo de la pagina para lectores de pantalla y buscadores: la
+          portada visual es el recorrido, que no tiene un h1 propio. */}
+      <h1 className="sr-only">CONTRA/LUZ — Arquitectura moldeada por la luz</h1>
       <Cinematic lenisRef={lenisRef} />
-      <Hero lenisRef={lenisRef} />
       <Projects />
       <Studio />
       <Contact />

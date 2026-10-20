@@ -221,7 +221,8 @@ export default function Cinematic({ lenisRef }) {
 
   const skip = (e) => {
     e.preventDefault();
-    const target = document.getElementById('inicio');
+    // Saltar el recorrido lleva directo a los proyectos.
+    const target = document.getElementById('proyectos');
     if (!target) return;
     const lenis = lenisRef?.current ?? window.__lenis;
     if (lenis) lenis.scrollTo(target, { duration: 1.8 });
@@ -263,7 +264,7 @@ export default function Cinematic({ lenisRef }) {
           <div className="absolute inset-0 bg-void/40" />
           <div className="shell absolute inset-x-0 bottom-0 flex items-end justify-between pb-10">
             <p className="display text-5xl text-bone">{first.name}</p>
-            <a href="#inicio" onClick={skip} className="label text-ember">
+            <a href="#proyectos" onClick={skip} className="label text-ember">
               {t.reelSkip} ↓
             </a>
           </div>
@@ -380,7 +381,7 @@ export default function Cinematic({ lenisRef }) {
         {/* pr extra: la barra lateral fija (w-12 / md:w-16) tapaba el boton. */}
         <div className="shell absolute inset-x-0 bottom-[9vh] z-30 flex justify-end pr-16 md:pr-20 lg:pr-16">
           <a
-            href="#inicio"
+            href="#proyectos"
             onClick={skip}
             data-cursor="hover"
             className="label inline-flex min-h-[44px] items-center border border-white/15 px-4 transition-colors hover:border-ember hover:text-ember"

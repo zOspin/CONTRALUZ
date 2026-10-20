@@ -185,39 +185,6 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  /* Ventanas bajas (laptops 768x~600, DevTools abierto): compacta el hero
-     para que un bloque quepa sin taparse con el header ni el borde. */
-  @media (max-height: 700px) {
-    [data-hero-content] {
-      padding-bottom: 2rem;
-    }
-    [data-hero-kicker] {
-      margin-bottom: 0.9rem;
-    }
-    [data-hero-tag] {
-      margin-top: 0.9rem;
-      font-size: 1rem;
-      line-height: 1.5;
-    }
-    [data-hero-cta] {
-      margin-top: 1rem;
-    }
-    [data-hero-hint] {
-      display: none;
-    }
-  }
-
-  /* Ultrawide 21/9+: el titulo se ata a la altura para no amontonar
-     a lo ancho, y el contenido respira desde abajo. */
-  @media (min-aspect-ratio: 21/9) {
-    [data-hero-title] {
-      font-size: clamp(2.5rem, min(6vw, 13vh), 7rem);
-    }
-    [data-hero-content] {
-      padding-bottom: 9vh;
-    }
-  }
-
   /* ---- Utilidades ---- */
 
   /* Blanco y negro de alto contraste, pero legible sobre fondo oscuro.
