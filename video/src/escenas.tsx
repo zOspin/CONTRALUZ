@@ -304,16 +304,49 @@ export const Cta: React.FC = () => {
           style={{
             border: `3px solid ${COLOR.ember}`,
             borderRadius: 999,
-            padding: "26px 54px",
+            padding: "24px 44px",
             fontFamily: FUENTE.mono,
-            fontSize: 44,
+            fontSize: 38,
             color: COLOR.bone,
             background: "rgba(10,10,10,0.55)",
             opacity: interpolate(frame, [en, en + 4], [0, 1], clamp),
             scale: interpolate(frame, [en, en + 8], [0.8, 1], { ...clamp, easing: SALIDA }),
           }}
         >
-          estudio@contraluz.co
+          contraluz.studio.arq@gmail.com
+        </div>
+        {/* Instagram: icono + usuario, entra medio beat despues del correo */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 22,
+            marginTop: -30,
+            fontFamily: FUENTE.mono,
+            fontSize: 42,
+            color: COLOR.bone,
+            opacity: interpolate(frame, [en + 7, en + 11], [0, 1], clamp),
+            translate: interpolate(frame, [en + 7, en + 14], ["0px 24px", "0px 0px"], {
+              ...clamp,
+              easing: SALIDA,
+            }),
+          }}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width={58}
+            height={58}
+            fill="none"
+            stroke={COLOR.ember}
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="5" />
+            <circle cx="12" cy="12" r="4.2" />
+            <circle cx="17.4" cy="6.6" r="0.9" fill={COLOR.ember} stroke="none" />
+          </svg>
+          @contraluz.arq
         </div>
       </AbsoluteFill>
       <Destello fuerza={0.6} />

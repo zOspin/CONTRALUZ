@@ -3,12 +3,13 @@ import gsap from 'gsap';
 import SectionHeading from '../components/SectionHeading';
 import { useReducedMotion, useCoarse } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
+import { EMAIL, INSTAGRAM } from '../data/contacto';
+import InstagramLink from '../components/InstagramLink';
 
-const EMAIL = 'estudio@contraluz.co';
 const PHONE = '+57 604 123 4567';
 
 const SOCIALS = [
-  { label: 'Instagram', href: 'https://instagram.com/contraluz.arq' },
+  { label: 'Instagram', href: INSTAGRAM.url },
   { label: 'LinkedIn', href: 'https://linkedin.com/company/contraluz-arq' },
   { label: 'Are.na', href: 'https://are.na/contraluz-arq' },
 ];
@@ -174,6 +175,17 @@ export default function Contact() {
               >
                 {EMAIL}
               </a>
+            </div>
+
+            <div>
+              <span className="label">Instagram</span>
+              <div className="mt-2">
+                <InstagramLink
+                  conTexto
+                  iconClassName="h-7 w-7"
+                  className="!justify-start font-serif text-xl italic text-bone md:text-2xl"
+                />
+              </div>
             </div>
 
             <div>

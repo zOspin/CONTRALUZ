@@ -31,7 +31,7 @@ const Cabecera: React.FC = () => {
         opacity: visible,
       }}
     >
-      <Img src={staticFile("logo/contraluz.png")} style={{ width: 280 }} />
+      <Img src={staticFile("logo/contraluz-compacto.png")} style={{ width: 290 }} />
       <div style={{ fontFamily: FUENTE.mono, fontSize: 34, letterSpacing: "0.2em", color: COLOR.bone }}>
         <span style={{ color: COLOR.ember }}>{String(Math.max(1, actual + 1)).padStart(2, "0")}</span>
         {" / "}

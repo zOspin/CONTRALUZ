@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useLang, UI } from '../context/LanguageContext';
 import { useReducedMotion } from '../hooks/useMedia';
+import InstagramLink from './InstagramLink';
 
 /**
  * BARRA DE IDIOMA + PANEL DE NAVEGACION
@@ -280,7 +281,9 @@ export default function SidePanel({ scrollTo, lenisRef }) {
           </span>
         </button>
 
-        {/* Selector de idioma — la unica pieza en reposo */}
+        {/* Instagram + selector de idioma */}
+        <div className="flex flex-col items-center gap-3">
+        <InstagramLink iconClassName="h-5 w-5" className="text-smoke" />
         <div role="radiogroup" aria-label={t.language} className="flex flex-col items-center gap-1.5">
           {LANGS.map((opt) => {
             const active = lang === opt.code;
@@ -310,6 +313,7 @@ export default function SidePanel({ scrollTo, lenisRef }) {
               </button>
             );
           })}
+        </div>
         </div>
       </div>
     </>

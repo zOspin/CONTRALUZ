@@ -4,6 +4,7 @@ import SectionHeading from '../components/SectionHeading';
 import Stat from '../components/Stat';
 import { useReducedMotion, useCoarse } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
+import { EMAIL } from '../data/contacto';
 
 export default function Studio() {
   const root = useRef(null);
@@ -28,7 +29,7 @@ export default function Studio() {
     { label: t.dataStudio, value: t.dataStudioV },
     { label: t.dataFounded, value: t.dataFoundedV },
     { label: t.dataOffice, value: t.dataOfficeV },
-    { label: t.dataEmail, value: 'estudio@contraluz.co' },
+    { label: t.dataEmail, value: EMAIL },
   ];
 
   useEffect(() => {

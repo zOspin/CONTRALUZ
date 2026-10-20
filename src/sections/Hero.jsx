@@ -183,7 +183,7 @@ export default function Hero({ lenisRef }) {
           </div>
 
           <h1 data-hero-title>
-            <Logo className="w-[min(calc(100vw-6.5rem),52rem,95vh)]" />
+            <Logo adaptativo className="w-[min(calc(100vw-6.5rem),52rem,95vh)]" />
           </h1>
 
           <p
@@ -294,6 +294,7 @@ export default function Hero({ lenisRef }) {
                   para lectores de pantalla y buscadores. */}
               <h1 data-hero-title>
                 <Logo
+                  adaptativo
                   className="w-[min(calc(100vw-6.5rem),52rem,95vh)]"
                   style={{ filter: 'drop-shadow(0 6px 30px rgba(0,0,0,0.55))' }}
                 />

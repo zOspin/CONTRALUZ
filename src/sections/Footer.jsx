@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import { useReducedMotion } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
 import Logo from '../components/Logo';
+import InstagramLink from '../components/InstagramLink';
 
 /**
  * Footer minimalista con logo grande y reloj del visitante.
@@ -92,6 +93,7 @@ export default function Footer({ scrollTo, lenisRef }) {
           </div>
 
           <nav data-footer-reveal aria-label={t.nav} className="flex items-center gap-8">
+            <InstagramLink iconClassName="h-6 w-6" className="text-bone/80" />
             <a href="#contacto" onClick={(e) => go(e, 'contacto')} className="label inline-flex min-h-[44px] items-center transition-colors hover:text-ember" data-cursor="hover">
               {t.contact}
             </a>

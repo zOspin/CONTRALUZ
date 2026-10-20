@@ -101,7 +101,7 @@ export default function Preloader({ onDone }) {
       {/* Palabra central */}
       <div className="flex flex-col items-center text-center">
         <div data-preload-word aria-hidden="true">
-          <Logo alt="" className="w-[80vw] max-w-[46rem]" />
+          <Logo alt="" adaptativo className="w-[80vw] max-w-[46rem]" />
         </div>
         <p
           data-preload-tag

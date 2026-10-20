@@ -5,6 +5,8 @@ import { useReducedMotion } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
 import { scrollToSection } from '../hooks/useLenis';
 import Logo from './Logo';
+import InstagramLink from './InstagramLink';
+import { EMAIL } from '../data/contacto';
 
 const LINKS = [
   { key: 'projects', href: '#proyectos', id: 'proyectos' },
@@ -12,7 +14,6 @@ const LINKS = [
   { key: 'contact', href: '#contacto', id: 'contacto' },
 ];
 
-const EMAIL = 'estudio@contraluz.co';
 
 /**
  * Navbar fijo con overlay movil a pantalla completa.
@@ -117,7 +118,7 @@ export default function Navbar({ scrollTo, lenisRef }) {
             aria-label="CONTRA/LUZ — inicio"
             data-cursor="hover"
           >
-            <Logo alt="" className="w-[124px] md:w-[148px]" />
+            <Logo alt="" compacto className="w-[150px] md:w-[178px]" />
           </Link>
 
           <ul className="hidden items-center gap-10 md:flex">
@@ -203,6 +204,12 @@ export default function Navbar({ scrollTo, lenisRef }) {
             >
               {EMAIL}
             </a>
+            <InstagramLink
+              conTexto
+              tabIndex={open ? 0 : -1}
+              iconClassName="h-6 w-6"
+              className="!justify-start font-mono text-sm text-bone"
+            />
           </div>
         </div>
       </div>
