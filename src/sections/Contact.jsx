@@ -6,8 +6,6 @@ import { useLang, UI } from '../context/LanguageContext';
 import { EMAIL } from '../data/contacto';
 import InstagramLink from '../components/InstagramLink';
 
-const PHONE = '+57 604 123 4567';
-
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /**
@@ -180,17 +178,6 @@ export default function Contact() {
                   className="!justify-start font-serif text-xl italic text-bone md:text-2xl"
                 />
               </div>
-            </div>
-
-            <div>
-              <span className="label">{t.directPhone}</span>
-              <a
-                href={`tel:${PHONE.replace(/\s/g, '')}`}
-                className="mt-3 block font-serif text-xl italic text-bone transition-colors hover:text-ember md:text-2xl"
-                data-cursor="hover"
-              >
-                {PHONE}
-              </a>
             </div>
 
             <div className="pt-6">

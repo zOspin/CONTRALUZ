@@ -113,7 +113,6 @@ export const UI = {
     sentMsg: 'Abrimos tu correo con el mensaje listo. Solo falta enviarlo.',
     mailSubject: 'Contacto desde la web',
     directEmail: 'Email',
-    directPhone: 'Teléfono',
     officeLabel: 'Estudio',
     officeCity: 'Medellín, Colombia',
     // Footer
@@ -214,7 +213,6 @@ export const UI = {
     sentMsg: 'Your email app is open with the message ready. Just hit send.',
     mailSubject: 'Contact from the website',
     directEmail: 'Email',
-    directPhone: 'Phone',
     officeLabel: 'Studio',
     officeCity: 'Medellín, Colombia',
     localTime: 'Local time',
