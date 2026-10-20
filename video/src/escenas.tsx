@@ -1,6 +1,6 @@
-import { AbsoluteFill, Easing, Img, Sequence, interpolate, staticFile, useCurrentFrame } from "remotion";
-import { escena, framePalabra } from "./datos";
-import { Barrido, Destello, Foto, Grilla, Linea, Palabras, Velo } from "./efectos";
+import { AbsoluteFill, Easing, Img, Sequence, interpolate, staticFile } from "remotion";
+import { aBase, escena, framePalabra } from "./datos";
+import { Barrido, Destello, Foto, Grilla, Linea, Palabras, Velo, useTiempo } from "./efectos";
 import { COLOR, FUENTE, MARGEN } from "./tema";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
@@ -8,7 +8,7 @@ const SALIDA = Easing.bezier(0.16, 1, 0.3, 1);
 
 /** Rotulo de proyecto en mono, con linea ambar. */
 const Rotulo: React.FC<{ texto: string; en?: number }> = ({ texto, en = 4 }) => {
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   return (
     <div
       style={{
@@ -42,7 +42,7 @@ const Rotulo: React.FC<{ texto: string; en?: number }> = ({ texto, en = 4 }) => 
 /* ---------------------------------------------------------------- */
 export const Gancho: React.FC = () => {
   const e = escena("gancho");
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   const apertura = interpolate(frame, [3, 20], [50, 0], { ...clamp, easing: SALIDA });
   return (
     <AbsoluteFill style={{ backgroundColor: COLOR.void }}>
@@ -84,7 +84,7 @@ export const Gancho: React.FC = () => {
 /* 2. MATERIA: tres palabras gigantes, tres cortes                   */
 /* ---------------------------------------------------------------- */
 const PalabraGigante: React.FC<{ texto: string; indice: string }> = ({ texto, indice }) => {
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   return (
     <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
       <div
@@ -143,7 +143,7 @@ export const Materia: React.FC = () => {
 /* 3. ESCUELAS: pantalla dividida en tres paneles                    */
 /* ---------------------------------------------------------------- */
 const Panel: React.FC<{ src: string; i: number; frames: number }> = ({ src, i, frames }) => {
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   const en = i * 3;
   return (
     <div
@@ -189,7 +189,7 @@ export const Escuelas: React.FC = () => {
 /* ---------------------------------------------------------------- */
 export const Casas: React.FC = () => {
   const e = escena("casas");
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   return (
     <AbsoluteFill style={{ backgroundColor: COLOR.void }}>
       <AbsoluteFill
@@ -215,7 +215,7 @@ export const Casas: React.FC = () => {
 /* ---------------------------------------------------------------- */
 export const Paisajes: React.FC = () => {
   const e = escena("paisajes");
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   return (
     <AbsoluteFill style={{ backgroundColor: COLOR.void }}>
       <Foto src="liuto-lago" frames={e.frames} origen="58% 40%" />
@@ -230,7 +230,7 @@ export const Paisajes: React.FC = () => {
           lineHeight: 1,
           color: "transparent",
           WebkitTextStroke: `3px rgba(236,232,225,0.75)`,
-          translate: interpolate(frame, [0, e.frames], ["120px 0px", "-760px 0px"], clamp),
+          translate: interpolate(frame, [0, aBase(e.frames)], ["120px 0px", "-760px 0px"], clamp),
           opacity: interpolate(frame, [0, 6], [0, 1], clamp),
         }}
       >
@@ -253,7 +253,7 @@ export const Paisajes: React.FC = () => {
 /* ---------------------------------------------------------------- */
 export const Marca: React.FC = () => {
   const e = escena("marca");
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   return (
     <AbsoluteFill style={{ backgroundColor: COLOR.void }}>
       <AbsoluteFill style={{ opacity: interpolate(frame, [10, 40], [0, 0.42], clamp) }}>
@@ -290,8 +290,8 @@ export const Marca: React.FC = () => {
 /* ---------------------------------------------------------------- */
 export const Cta: React.FC = () => {
   const e = escena("cta");
-  const frame = useCurrentFrame();
-  const en = framePalabra(e, 1);
+  const frame = useTiempo();
+  const en = aBase(framePalabra(e, 1));
   return (
     <AbsoluteFill style={{ backgroundColor: COLOR.void }}>
       <Foto src="spa-piscina" frames={e.frames} oscurecer={0.5} />

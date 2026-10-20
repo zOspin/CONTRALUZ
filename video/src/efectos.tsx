@@ -7,10 +7,13 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { FPS, type Palabra } from "./datos";
+import { BASE, FPS, aBase, type Palabra } from "./datos";
 import { COLOR, FUENTE } from "./tema";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+
+/** Frame actual en la base de 30 fps (con decimales a 60 fps). */
+export const useTiempo = () => (useCurrentFrame() * BASE) / FPS;
 const SALIDA = Easing.bezier(0.16, 1, 0.3, 1);
 
 /**
@@ -24,7 +27,7 @@ export const Foto: React.FC<{
   origen?: string;
   oscurecer?: number;
 }> = ({ src, frames, golpe = true, origen = "50% 50%", oscurecer = 0 }) => {
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: COLOR.void }}>
       <Img
@@ -35,11 +38,11 @@ export const Foto: React.FC<{
           objectFit: "cover",
           transformOrigin: origen,
           scale: golpe
-            ? interpolate(frame, [0, 7, frames], [1.13, 1.03, 1.12], {
+            ? interpolate(frame, [0, 7, aBase(frames)], [1.13, 1.03, 1.12], {
                 ...clamp,
                 easing: SALIDA,
               })
-            : interpolate(frame, [0, frames], [1.0, 1.1], clamp),
+            : interpolate(frame, [0, aBase(frames)], [1.0, 1.1], clamp),
         }}
       />
       {oscurecer ? (
@@ -51,7 +54,7 @@ export const Foto: React.FC<{
 
 /** Destello en el corte: luz ambar que se apaga en pocos frames. */
 export const Destello: React.FC<{ en?: number; fuerza?: number }> = ({ en = 0, fuerza = 0.85 }) => {
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   return (
     <AbsoluteFill
       style={{
@@ -90,7 +93,7 @@ export const Palabras: React.FC<{
   /** Todo en serif italica (frases de firma), en vez de display en mayusculas. */
   serif?: boolean;
 }> = ({ palabras, acentos = [], tamano = 150, style, saltos = [], serif = false }) => {
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   const limpia = (s: string) => s.toLowerCase().replace(/[^a-záéíóúñ]/g, "");
   return (
     <div
@@ -111,7 +114,7 @@ export const Palabras: React.FC<{
       }}
     >
       {palabras.map((p, i) => {
-        const en = Math.round((p.startMs / 1000) * FPS) - 1;
+        const en = (p.startMs / 1000) * BASE - 1;
         const acento = acentos.includes(limpia(p.text));
         const italica = serif || acento;
         return (
@@ -151,7 +154,7 @@ export const Linea: React.FC<{ en: number; ancho: number; style?: React.CSSPrope
   ancho,
   style,
 }) => {
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   return (
     <div
       style={{
@@ -168,7 +171,7 @@ export const Linea: React.FC<{ en: number; ancho: number; style?: React.CSSPrope
 
 /** Haz de luz diagonal que barre la pantalla. */
 export const Barrido: React.FC<{ en: number; dur?: number }> = ({ en, dur = 18 }) => {
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   const { width } = useVideoConfig();
   return (
     <AbsoluteFill style={{ overflow: "hidden", pointerEvents: "none", mixBlendMode: "screen" }}>
@@ -193,7 +196,7 @@ export const Barrido: React.FC<{ en: number; dur?: number }> = ({ en, dur = 18 }
 
 /** Grilla de plano arquitectonico: lineas verticales que se trazan. */
 export const Grilla: React.FC<{ en?: number; opacidad?: number }> = ({ en = 0, opacidad = 0.12 }) => {
-  const frame = useCurrentFrame();
+  const frame = useTiempo();
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
       {[0.2, 0.4, 0.6, 0.8].map((x, i) => (

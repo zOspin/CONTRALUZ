@@ -1,9 +1,21 @@
 import guion from "../guion.json";
 import voz from "./voz.generated.json";
 
-export const FPS = 30;
+export const FPS = 60;
+
+/**
+ * Las animaciones estan escritas en "frames de 30 fps" (BASE). Asi se
+ * puede subir a 60 fps sin que todo vaya al doble de velocidad:
+ *   - useTiempo() (efectos.tsx) da el frame actual en esa base, con
+ *     decimales: a 60 fps hay el doble de pasos intermedios, igual duracion.
+ *   - F(n) convierte n frames de la base a frames reales (Sequence, audio).
+ *   - aBase(frames reales) hace lo contrario.
+ */
+export const BASE = 30;
+export const F = (n: number) => Math.round((n * FPS) / BASE);
+export const aBase = (frames: number) => (frames * BASE) / FPS;
 export const BPM = guion.bpm;
-/** Frames por beat (124 bpm a 30 fps = 14.5). Los cortes caen en la grilla. */
+/** Frames por beat (124 bpm a 60 fps = 29.0). Los cortes caen en la grilla. */
 export const BEAT = (FPS * 60) / BPM;
 
 /** La voz entra justo despues del corte (mismo valor que usa musica.py). */

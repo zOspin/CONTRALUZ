@@ -7,7 +7,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { ENTRADA_VOZ_MS, ESCENAS, FPS, TRAMOS_VOZ, escena } from "./datos";
+import { ENTRADA_VOZ_MS, ESCENAS, F, FPS, TRAMOS_VOZ, escena } from "./datos";
 import { Casas, Cta, Escuelas, Gancho, Marca, Materia, Paisajes } from "./escenas";
 import { Sonido } from "./Sonido";
 import { COLOR, FUENTE, MARGEN } from "./tema";
@@ -18,7 +18,7 @@ const Cabecera: React.FC = () => {
   const marca = escena("marca");
   const actual = ESCENAS.findIndex((e) => frame >= e.desde && frame < e.desde + e.frames);
   const visible =
-    frame >= 12 && !(frame >= marca.desde && frame < marca.desde + marca.frames) ? 1 : 0;
+    frame >= F(12) && !(frame >= marca.desde && frame < marca.desde + marca.frames) ? 1 : 0;
   return (
     <div
       style={{
@@ -67,8 +67,8 @@ const volumenMusica = (f: number) => {
   const dist = Math.min(
     ...TRAMOS_VOZ.map(([a, b]) => (f < a ? a - f : f > b ? f - b : 0)),
   );
-  // Baja a 0.34 bajo la voz y sube a 0.8 en 6 frames, sin saltos.
-  const k = Math.min(1, Math.max(0, (dist - 2) / 6));
+  // Baja a 0.34 bajo la voz y sube a 0.8 en ~0.2 s, sin saltos.
+  const k = Math.min(1, Math.max(0, (dist - F(2)) / F(6)));
   return 0.34 + (0.8 - 0.34) * k;
 };
 
