@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { getProject, projects, localizeProject } from '../data/projects';
 import ProjectImage from '../components/ProjectImage';
+import Lightbox from '../components/Lightbox';
 import { useReducedMotion } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
 import { scrollToTop } from '../hooks/useLenis';
@@ -20,6 +21,7 @@ export default function ProjectDetail() {
   const t = UI[lang];
   const raw = getProject(id);
   const project = localizeProject(raw, lang);
+  const [visor, setVisor] = useState(null); // indice abierto en el lightbox
 
   usePageMeta({
     title: project ? `${project.name} — CONTRA/LUZ` : undefined,
@@ -30,6 +32,7 @@ export default function ProjectDetail() {
 
   useEffect(() => {
     scrollToTop(true);
+    setVisor(null);
   }, [id]);
 
   useEffect(() => {
@@ -69,6 +72,17 @@ export default function ProjectDetail() {
   const nextRaw = projects[(currentIndex + 1) % projects.length];
   const next = localizeProject(nextRaw, lang);
 
+  const vista = (i) => `${project.name} — ${lang === 'en' ? 'view' : 'vista'} ${i + 1}`;
+  const portadaEnGaleria = project.gallery.indexOf(project.cover);
+  // Disparador del visor: boton a todo el ancho que envuelve la imagen.
+  const ampliar = (i) => ({
+    type: 'button',
+    onClick: () => setVisor(i),
+    'aria-label': t.lbOpen(i + 1, project.gallery.length),
+    'data-cursor': 'hover',
+    className: 'block w-full cursor-zoom-in text-left focus-visible:outline-ember',
+  });
+
   const spec = [
     { label: t.specLocation, value: project.location },
     { label: t.specArea, value: project.area },
@@ -98,15 +112,13 @@ export default function ProjectDetail() {
       </header>
 
       <div data-detail-reveal className="shell">
-        <ProjectImage
-          src={project.cover}
-          alt={project.alt}
-          aspect="aspect-[16/9]"
-          priority
-          parallax
-          hoverZoom={false}
-          color
-        />
+        {portadaEnGaleria >= 0 ? (
+          <button {...ampliar(portadaEnGaleria)}>
+            <ProjectImage src={project.cover} alt={project.alt} aspect="aspect-[16/9]" priority parallax hoverZoom={false} color />
+          </button>
+        ) : (
+          <ProjectImage src={project.cover} alt={project.alt} aspect="aspect-[16/9]" priority parallax hoverZoom={false} color />
+        )}
       </div>
 
       <div className="shell mt-16 md:mt-24">
@@ -161,17 +173,27 @@ export default function ProjectDetail() {
               data-detail-reveal
               className={i === 0 ? 'md:col-span-2' : ''}
             >
-              <ProjectImage
-                src={src}
-                alt={`${project.name} — vista ${i + 1}`}
-                aspect={i === 0 ? 'aspect-[16/9]' : 'aspect-[4/3]'}
-                parallax
-                color
-              />
+              <button {...ampliar(i)}>
+                <ProjectImage
+                  src={src}
+                  alt={vista(i)}
+                  aspect={i === 0 ? 'aspect-[16/9]' : 'aspect-[4/3]'}
+                  parallax
+                  color
+                />
+              </button>
             </div>
           ))}
         </div>
       </section>
+
+      <Lightbox
+        images={project.gallery}
+        index={visor}
+        onIndex={setVisor}
+        onClose={() => setVisor(null)}
+        altFor={vista}
+      />
 
       <section className="shell mt-24 border-t border-white/10 pt-16 md:mt-36 md:pt-24">
         <span className="label">{t.nextProject}</span>
