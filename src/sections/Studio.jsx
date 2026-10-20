@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import SectionHeading from '../components/SectionHeading';
-import Stat from '../components/Stat';
 import { useReducedMotion, useCoarse } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
 import { EMAIL } from '../data/contacto';
@@ -19,11 +18,6 @@ export default function Studio() {
     { n: '02', title: t.filo2t, text: t.filo2x },
     { n: '03', title: t.filo3t, text: t.filo3x },
     { n: '04', title: t.filo4t, text: t.filo4x },
-  ];
-  const CIFRAS = [
-    { value: 12, label: t.stat1 },
-    { value: 38, label: t.stat2 },
-    { value: 9, label: t.stat3 },
   ];
   const CONTACTO = [
     { label: t.dataStudio, value: t.dataStudioV },
@@ -105,8 +99,11 @@ export default function Studio() {
                 </p>
               ))}
             </div>
+          </div>
 
-            <div data-firma className="mt-12 border-l border-ember/40 pl-6">
+          {/* La firma ocupa la columna derecha (antes: cifras de ejemplo). */}
+          <div className="flex lg:col-span-5 lg:items-end lg:pl-14">
+            <div data-firma className="border-l border-ember/40 pl-6">
               <span className="label">{t.signLabel}</span>
               <p className="mt-3 font-serif text-2xl italic text-bone/80">
                 Santiago Quintero Ospina
@@ -114,16 +111,6 @@ export default function Studio() {
                   {t.signRole}
                 </span>
               </p>
-            </div>
-          </div>
-
-          <div className="lg:col-span-5 lg:border-l lg:border-white/10 lg:pl-14">
-            <span className="label">{t.statsTitle}</span>
-
-            <div className="mt-10 space-y-14">
-              {CIFRAS.map((c, i) => (
-                <Stat key={`${lang}-${c.label}`} value={c.value} label={c.label} index={i} />
-              ))}
             </div>
           </div>
         </div>
