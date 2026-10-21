@@ -13,7 +13,8 @@ import Logo from './Logo';
  *   3) el tagline en serif italic
  *   4) barra fina ember + contador 000/100
  * Luego cortina hacia arriba revelando el hero (~3s total).
- * Con reduced-motion muestra el sitio directo. Bloquea input mientras carga.
+ * Con reduced-motion la misma intro solo con fundidos (~3s). Bloquea input
+ * mientras carga.
  */
 export default function Preloader({ onDone }) {
   const root = useRef(null);
@@ -26,9 +27,36 @@ export default function Preloader({ onDone }) {
     const el = root.current;
     if (!el) return;
 
+    // Movimiento reducido (p.ej. Windows con "Efectos de animacion" apagado):
+    // la intro se ve igual, pero solo con fundidos. Sin barrido, blur,
+    // desplazamientos ni cortina.
     if (reduced) {
-      const timer = setTimeout(() => onDone?.(), 200);
-      return () => clearTimeout(timer);
+      const ctx = gsap.context(() => {
+        const tl = gsap.timeline({ onComplete: () => onDone?.() });
+        tl.fromTo(
+          '[data-preload-word], [data-preload-tag], [data-preload-frame]',
+          { opacity: 0 },
+          { opacity: 1, duration: 0.9, stagger: 0.15, ease: 'power1.out' }
+        )
+          .fromTo(
+            '[data-preload-bar]',
+            { scaleX: 0 },
+            {
+              scaleX: 1,
+              duration: 1.3,
+              ease: 'none',
+              onUpdate: function () {
+                const p = Math.round(this.progress() * 100);
+                if (count.current) count.current.textContent = String(p).padStart(3, '0');
+              },
+            },
+            '-=0.5'
+          )
+          .to({}, { duration: 0.3 })
+          .to(el, { opacity: 0, duration: 0.7, ease: 'power1.inOut' })
+          .set(el, { display: 'none' });
+      }, root);
+      return () => ctx.revert();
     }
 
     const ctx = gsap.context(() => {

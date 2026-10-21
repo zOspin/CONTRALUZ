@@ -25,8 +25,9 @@ import { useLang, UI } from '../context/LanguageContext';
  *               siguiente plano, que ya esta debajo
  *
  * Todo es funcion pura del progreso de scroll: se puede ir y volver.
- * Solo se animan opacity y scale (transform). Con reduced-motion se muestra
- * un plano fijo.
+ * Solo se animan opacity y scale (transform). Con reduced-motion el recorrido
+ * sigue, pero en modo `calma`: sin zoom ni desplazamientos, solo fundidos
+ * entre fotos (antes era un plano fijo y en esos equipos "no habia intro").
  *
  * MODO VIDEO
  * ----------
@@ -69,7 +70,7 @@ const ARRIVE = 0.14 * SEG;
 const DIVE = 0.38 * SEG;
 
 /** Un plano: llegada, empuje lento y salto hacia su punto de luz. */
-function CineShot({ progress, index, shot, alt }) {
+function CineShot({ progress, index, shot, alt, calma }) {
   const start = index * SEG;
   const end = start + SEG;
   const isFirst = index === 0;
@@ -102,7 +103,7 @@ function CineShot({ progress, index, shot, alt }) {
       className="absolute inset-0 will-change-transform"
       style={{
         opacity,
-        scale,
+        scale: calma ? 1 : scale,
         transformOrigin: `${shot.focus[0]}% ${shot.focus[1]}%`,
       }}
     >
@@ -120,7 +121,7 @@ function CineShot({ progress, index, shot, alt }) {
 }
 
 /** Titulo del plano: entra despues del cruce y se va antes del salto. */
-function CineCaption({ progress, index, caption }) {
+function CineCaption({ progress, index, caption, calma }) {
   const start = index * SEG;
   const end = start + SEG;
   const isFirst = index === 0;
@@ -141,7 +142,7 @@ function CineCaption({ progress, index, caption }) {
   // motion.div adentro: Framer escribe `transform` y pisaria el -translate-y.
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-[calc(9vh+4.5rem)] z-10 md:bottom-auto md:top-1/2 md:-translate-y-1/2">
-      <motion.div className="shell" style={{ opacity, y, visibility }}>
+      <motion.div className="shell" style={{ opacity, y: calma ? 0 : y, visibility }}>
         <div className="max-w-md">
           <p className="display text-[12vw] leading-[0.88] text-bone sm:text-[8vw] md:text-[5vw] 3xl:text-[6rem]">
             {caption.name}
@@ -244,30 +245,6 @@ export default function Cinematic({ lenisRef }) {
   });
   const activeProject = SHOTS[shot].projectId;
 
-  if (prefersReduced) {
-    const first = localizeProject(projects[0], lang);
-    return (
-      <section aria-label={t.reelKicker} className="relative">
-        <div className="relative h-[70vh] overflow-hidden">
-          <SmartImage
-            base={SHOTS[0].src}
-            alt={first.alt}
-            className="h-full w-full object-cover"
-            eager
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-void/40" />
-          <div className="shell absolute inset-x-0 bottom-0 flex items-end justify-between pb-10">
-            <p className="display text-5xl text-bone">{first.name}</p>
-            <a href="#proyectos" onClick={skip} className="label text-ember">
-              {t.reelSkip} ↓
-            </a>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section
       ref={trackRef}
@@ -282,7 +259,7 @@ export default function Cinematic({ lenisRef }) {
           SHOTS.map((s, i) => {
             const p = localizeProject(projects.find((p) => p.id === s.projectId), lang);
             return (
-              <CineShot key={s.src} progress={progress} index={i} shot={s} alt={p.alt} />
+              <CineShot key={s.src} progress={progress} index={i} shot={s} alt={p.alt} calma={prefersReduced} />
             );
           })
         )}
@@ -300,6 +277,7 @@ export default function Cinematic({ lenisRef }) {
               key={`${s.src}-${lang}`}
               progress={progress}
               index={i}
+              calma={prefersReduced}
               caption={{
                 name: p.name,
                 location: p.location,
