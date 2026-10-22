@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from '../hooks/useAnimations';
 import { useReducedMotion } from '../hooks/useMedia';
-import { useLang, UI } from '../context/LanguageContext';
+import { useLang } from '../context/LanguageContext';
 
 /**
  * Preloader — intro con el logo animado (video con sonido) sobre el mapa de
@@ -17,8 +17,9 @@ import { useLang, UI } from '../context/LanguageContext';
  * mapa, sin cortes en ningun formato.
  *
  * Sonido: los navegadores no dejan reproducir audio sin un toque previo. Se
- * intenta con sonido; si lo bloquean arranca en silencio y cualquier toque
- * (o el boton) lo activa. Al terminar el video, fundido al portafolio.
+ * intenta con sonido; si lo bloquean arranca en silencio y cualquier toque o
+ * tecla lo activa. Sin botones: la intro corre sola y al terminar el video
+ * se funde al portafolio.
  */
 export default function Preloader({ onDone }) {
   const root = useRef(null);
@@ -26,8 +27,6 @@ export default function Preloader({ onDone }) {
   const saliendo = useRef(false);
   const reduced = useReducedMotion();
   const { lang } = useLang();
-  const t = UI[lang];
-  const [muted, setMuted] = useState(false);
   // Se decide una vez al abrir: cambiar de video a mitad cortaria la intro.
   const [forma] = useState(() =>
     typeof window !== 'undefined' && window.innerWidth < window.innerHeight ? 'v' : 'h'
@@ -72,7 +71,6 @@ export default function Preloader({ onDone }) {
     v.muted = false;
     v.play().catch(() => {
       v.muted = true;
-      setMuted(true);
       v.play().catch(salir);
     });
 
@@ -86,23 +84,11 @@ export default function Preloader({ onDone }) {
     };
   }, [reduced, salir]);
 
-  // Cualquier toque o tecla activa el sonido (los botones tienen el suyo).
-  // click y no pointerdown: en movil el permiso de audio llega con el toque
-  // completo.
-  const activarSonido = (e) => {
-    if (e?.target?.closest?.('button')) return;
+  // Cualquier toque o tecla activa el sonido. click y no pointerdown: en
+  // movil el permiso de audio llega con el toque completo.
+  const activarSonido = () => {
     const v = video.current;
-    if (!v || !v.muted) return;
-    v.muted = false;
-    setMuted(false);
-  };
-
-  const alternarSonido = (e) => {
-    e.stopPropagation();
-    const v = video.current;
-    if (!v) return;
-    v.muted = !v.muted;
-    setMuted(v.muted);
+    if (v && v.muted) v.muted = false;
   };
 
   return (
@@ -138,39 +124,6 @@ export default function Preloader({ onDone }) {
         className="absolute inset-0 h-full w-full object-contain mix-blend-screen"
       />
 
-      {/* Controles: sonido y entrar */}
-      <div className="pb-safe absolute inset-x-0 bottom-0 flex items-center justify-between gap-4 px-6 py-6 md:px-10 md:py-8">
-        <button
-          type="button"
-          onClick={alternarSonido}
-          aria-pressed={!muted}
-          className={`label inline-flex min-h-[44px] items-center gap-3 transition-colors hover:text-bone ${
-            muted ? 'text-ember' : 'text-bone/60'
-          }`}
-        >
-          <span aria-hidden="true" className="flex h-3 items-end gap-[3px]">
-            {[0.5, 1, 0.7].map((h, i) => (
-              <span
-                key={i}
-                className={`w-px bg-current ${muted ? '' : 'animate-pulse'}`}
-                style={{ height: muted ? '3px' : `${h * 12}px` }}
-              />
-            ))}
-          </span>
-          {muted ? t.introSound : t.introMute}
-        </button>
-
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            salir();
-          }}
-          className="label inline-flex min-h-[44px] items-center gap-2 border border-white/15 px-5 text-bone/70 transition-colors hover:border-ember hover:text-bone"
-        >
-          {t.introSkip} <span aria-hidden="true">→</span>
-        </button>
-      </div>
     </div>
   );
 }

@@ -215,16 +215,6 @@ export default function Cinematic({ lenisRef }) {
     else window.scrollTo({ top: y, behavior: 'smooth' });
   };
 
-  const skip = (e) => {
-    e.preventDefault();
-    // Saltar el recorrido lleva directo a los proyectos.
-    const target = document.getElementById('proyectos');
-    if (!target) return;
-    const lenis = lenisRef?.current ?? window.__lenis;
-    if (lenis) lenis.scrollTo(target, { duration: 1.8 });
-    else target.scrollIntoView({ behavior: 'smooth' });
-  };
-
   /** Salta al primer plano de un proyecto (mitad del tramo, ya sin cruce). */
   const goToShot = (i) => {
     const track = trackRef.current;
@@ -334,18 +324,6 @@ export default function Cinematic({ lenisRef }) {
           className="absolute inset-x-0 bottom-0 z-20 h-[7vh] origin-bottom bg-void"
           style={{ scaleY: barScale }}
         />
-
-        {/* Saltar */}
-        <div className="shell absolute inset-x-0 bottom-[9vh] z-30 flex justify-end">
-          <a
-            href="#proyectos"
-            onClick={skip}
-            data-cursor="hover"
-            className="label inline-flex min-h-[44px] items-center border border-white/15 px-4 transition-colors hover:border-ember hover:text-ember"
-          >
-            {t.reelSkip} ↓
-          </a>
-        </div>
 
         {/* Fundido final a negro */}
         <motion.div
