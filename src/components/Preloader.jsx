@@ -7,13 +7,14 @@ import { useLang, UI } from '../context/LanguageContext';
  * Preloader — intro con el logo animado (video con sonido) sobre el mapa de
  * Medellin opacado.
  *
- *   public/intro/logo.mp4   video vertical 1080x1920, fondo negro, ~7s
- *   public/intro/fondo.jpg  mapa de fondo
+ *   public/intro/logo-h.mp4 / logo-v.mp4  1920x1080 y 1080x1920, ~7s
+ *     (video/src/IntroLogo.tsx, con el audio de Logo-Fondo/Logo.mp4)
+ *   public/intro/fondo-h.webp / fondo-v.webp  mapa ampliado x3 y re-entintado
  *
- * El video se mezcla con `screen`: su negro desaparece y solo el logo brilla
- * sobre el mapa. Ancho min(100vw, 72svh): en movil entra completo; en
- * pantallas horizontales se agranda y se recorta negro arriba y abajo, sin
- * tocar el logo ni el lema.
+ * Pantalla horizontal -> versiones horizontales; vertical -> verticales. El
+ * video va en `contain` y se mezcla con `screen`: su negro (y sus bordes,
+ * fundidos a negro en el render) desaparecen y solo el logo brilla sobre el
+ * mapa, sin cortes en ningun formato.
  *
  * Sonido: los navegadores no dejan reproducir audio sin un toque previo. Se
  * intenta con sonido; si lo bloquean arranca en silencio y cualquier toque
@@ -27,6 +28,10 @@ export default function Preloader({ onDone }) {
   const { lang } = useLang();
   const t = UI[lang];
   const [muted, setMuted] = useState(false);
+  // Se decide una vez al abrir: cambiar de video a mitad cortaria la intro.
+  const [forma] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < window.innerHeight ? 'v' : 'h'
+  );
 
   const salir = useCallback(() => {
     if (saliendo.current) return;
@@ -111,7 +116,7 @@ export default function Preloader({ onDone }) {
       {/* Mapa de Medellin, opacado: textura de fondo, no protagonista */}
       <div data-intro-fondo aria-hidden="true" className="absolute inset-0 opacity-0">
         <img
-          src="/intro/fondo.jpg"
+          src={`/intro/fondo-${forma}.webp`}
           alt=""
           className="h-full w-full object-cover opacity-[0.22] will-change-transform"
         />
@@ -124,13 +129,13 @@ export default function Preloader({ onDone }) {
       {/* Logo animado: el negro del video se funde con el fondo */}
       <video
         ref={video}
-        src="/intro/logo.mp4"
+        src={`/intro/logo-${forma}.mp4`}
         playsInline
         preload="auto"
         onEnded={salir}
         onError={salir}
         aria-hidden="true"
-        className="absolute left-1/2 top-1/2 aspect-[9/16] w-[min(100vw,72svh)] max-w-none -translate-x-1/2 -translate-y-1/2 mix-blend-screen"
+        className="absolute inset-0 h-full w-full object-contain mix-blend-screen"
       />
 
       {/* Controles: sonido y entrar */}
