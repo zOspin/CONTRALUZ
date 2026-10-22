@@ -1,158 +1,170 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from '../hooks/useAnimations';
 import { useReducedMotion } from '../hooks/useMedia';
 import { useLang, UI } from '../context/LanguageContext';
-import Logo from './Logo';
 
 /**
- * Preloader — pantalla negra de entrada.
+ * Preloader — intro con el logo animado (video con sonido) sobre el mapa de
+ * Medellin opacado.
  *
- * Secuencia animada por etapas:
- *   1) el logotipo se descubre de izquierda a derecha (blur + clip-path)
- *   2) los marcos superior e inferior (encuadre)
- *   3) el tagline en serif italic
- *   4) barra fina ember + contador 000/100
- * Luego cortina hacia arriba revelando el hero (~3s total).
- * Con reduced-motion la misma intro solo con fundidos (~3s). Bloquea input
- * mientras carga.
+ *   public/intro/logo.mp4   video vertical 1080x1920, fondo negro, ~7s
+ *   public/intro/fondo.jpg  mapa de fondo
+ *
+ * El video se mezcla con `screen`: su negro desaparece y solo el logo brilla
+ * sobre el mapa. Ancho min(100vw, 72svh): en movil entra completo; en
+ * pantallas horizontales se agranda y se recorta negro arriba y abajo, sin
+ * tocar el logo ni el lema.
+ *
+ * Sonido: los navegadores no dejan reproducir audio sin un toque previo. Se
+ * intenta con sonido; si lo bloquean arranca en silencio y cualquier toque
+ * (o el boton) lo activa. Al terminar el video, fundido al portafolio.
  */
 export default function Preloader({ onDone }) {
   const root = useRef(null);
-  const count = useRef(null);
+  const video = useRef(null);
+  const saliendo = useRef(false);
   const reduced = useReducedMotion();
   const { lang } = useLang();
   const t = UI[lang];
+  const [muted, setMuted] = useState(false);
+
+  const salir = useCallback(() => {
+    if (saliendo.current) return;
+    saliendo.current = true;
+    const el = root.current;
+    const v = video.current;
+    if (v && !v.muted) gsap.to(v, { volume: 0, duration: 0.8, ease: 'power1.out' });
+    gsap
+      .timeline({
+        onComplete: () => {
+          v?.pause();
+          window.__lenis?.start();
+          onDone?.();
+        },
+      })
+      .to(el, { opacity: 0, duration: 0.9, ease: 'power2.inOut' })
+      .set(el, { display: 'none' });
+  }, [onDone]);
+
+  // Mientras dura la intro la pagina de atras no se mueve.
+  useEffect(() => {
+    window.__lenis?.stop();
+    return () => window.__lenis?.start();
+  }, []);
 
   useEffect(() => {
-    const el = root.current;
-    if (!el) return;
-
-    // Movimiento reducido (p.ej. Windows con "Efectos de animacion" apagado):
-    // la intro se ve igual, pero solo con fundidos. Sin barrido, blur,
-    // desplazamientos ni cortina.
-    if (reduced) {
-      const ctx = gsap.context(() => {
-        const tl = gsap.timeline({ onComplete: () => onDone?.() });
-        tl.fromTo(
-          '[data-preload-word], [data-preload-tag], [data-preload-frame]',
-          { opacity: 0 },
-          { opacity: 1, duration: 0.9, stagger: 0.15, ease: 'power1.out' }
-        )
-          .fromTo(
-            '[data-preload-bar]',
-            { scaleX: 0 },
-            {
-              scaleX: 1,
-              duration: 1.3,
-              ease: 'none',
-              onUpdate: function () {
-                const p = Math.round(this.progress() * 100);
-                if (count.current) count.current.textContent = String(p).padStart(3, '0');
-              },
-            },
-            '-=0.5'
-          )
-          .to({}, { duration: 0.3 })
-          .to(el, { opacity: 0, duration: 0.7, ease: 'power1.inOut' })
-          .set(el, { display: 'none' });
-      }, root);
-      return () => ctx.revert();
-    }
+    const v = video.current;
+    if (!v) return;
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ onComplete: () => onDone?.() });
-
-      // 1) PRIMERO el logotipo: se descubre como si lo barriera la luz.
-      tl.fromTo(
-        '[data-preload-word]',
-        { clipPath: 'inset(0% 100% 0% 0%)', opacity: 0.2, filter: 'blur(10px)' },
-        {
-          clipPath: 'inset(0% 0% 0% 0%)',
-          opacity: 1,
-          filter: 'blur(0px)',
-          duration: 1.3,
-          ease: 'expo.out',
-        }
-      )
-        // 2) LUEGO el resto: marcos superior e inferior (encuadre).
-        .fromTo(
-          '[data-preload-frame]',
-          { opacity: 0, y: (i) => (i === 0 ? -12 : 12) },
-          { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'expo.out' },
-          '-=0.55'
-        )
-        // 3) Tagline en serif: aparece detrás, sin competir.
-        .fromTo(
-          '[data-preload-tag]',
-          { opacity: 0, y: 18, filter: 'blur(8px)' },
-          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.1, ease: 'expo.out' },
-          '-=0.6'
-        )
-        // 4) Barra + contador avanzan juntos mientras la firma se sostiene.
-        .fromTo(
-          '[data-preload-bar]',
-          { scaleX: 0 },
-          {
-            scaleX: 1,
-            duration: 1.2,
-            ease: 'power2.inOut',
-            onUpdate: function () {
-              const p = Math.round(this.progress() * 100);
-              if (count.current) count.current.textContent = String(p).padStart(3, '0');
-            },
-          },
-          '-=0.9'
-        )
-        // Respiro mínimo y salida: cortina hacia arriba.
-        .to({}, { duration: 0.15 })
-        .to(el, { yPercent: -100, duration: 0.9, ease: 'power4.inOut' })
-        .set(el, { display: 'none' });
+      gsap.fromTo('[data-intro-fondo]', { opacity: 0 }, { opacity: 1, duration: 1.6, ease: 'power1.out' });
+      if (!reduced) {
+        gsap.fromTo('[data-intro-fondo] img', { scale: 1.08 }, { scale: 1, duration: 9, ease: 'none' });
+      }
     }, root);
 
-    return () => ctx.revert();
-  }, [onDone, reduced]);
+    // Con sonido si el navegador lo permite; si no, en silencio.
+    v.muted = false;
+    v.play().catch(() => {
+      v.muted = true;
+      setMuted(true);
+      v.play().catch(salir);
+    });
+
+    // Red de seguridad: si el video no arranca o se cuelga, se entra igual.
+    const tope = setTimeout(salir, 15000);
+    window.addEventListener('keydown', activarSonido);
+    return () => {
+      clearTimeout(tope);
+      window.removeEventListener('keydown', activarSonido);
+      ctx.revert();
+    };
+  }, [reduced, salir]);
+
+  // Cualquier toque o tecla activa el sonido (los botones tienen el suyo).
+  // click y no pointerdown: en movil el permiso de audio llega con el toque
+  // completo.
+  const activarSonido = (e) => {
+    if (e?.target?.closest?.('button')) return;
+    const v = video.current;
+    if (!v || !v.muted) return;
+    v.muted = false;
+    setMuted(false);
+  };
+
+  const alternarSonido = (e) => {
+    e.stopPropagation();
+    const v = video.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
+  };
 
   return (
     <div
       ref={root}
       role="status"
       aria-label={lang === 'en' ? 'Loading portfolio' : 'Cargando portafolio'}
-      className="fixed inset-0 z-preloader flex flex-col justify-between bg-void px-6 py-6 md:px-10 md:py-8"
+      onClick={activarSonido}
+      className="fixed inset-0 z-preloader overflow-hidden bg-void"
     >
-      {/* Marco superior */}
-      <div data-preload-frame className="flex items-center justify-between gap-4">
-        <span className="label text-bone/70">CONTRA/LUZ — {t.studio}</span>
-        <span className="hidden h-px flex-1 bg-white/10 sm:block" aria-hidden="true" />
-        <span className="label">{t.portfolio}</span>
+      {/* Mapa de Medellin, opacado: textura de fondo, no protagonista */}
+      <div data-intro-fondo aria-hidden="true" className="absolute inset-0 opacity-0">
+        <img
+          src="/intro/fondo.jpg"
+          alt=""
+          className="h-full w-full object-cover opacity-[0.22] will-change-transform"
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'radial-gradient(ellipse at center, rgba(10,10,10,0.35) 0%, rgba(10,10,10,0.92) 75%)' }}
+        />
       </div>
 
-      {/* Palabra central */}
-      <div className="flex flex-col items-center text-center">
-        <div data-preload-word aria-hidden="true">
-          <Logo alt="" adaptativo className="w-[80vw] max-w-[46rem]" />
-        </div>
-        <p
-          data-preload-tag
-          className="mt-6 font-serif text-lg italic text-bone/60 md:text-2xl"
+      {/* Logo animado: el negro del video se funde con el fondo */}
+      <video
+        ref={video}
+        src="/intro/logo.mp4"
+        playsInline
+        preload="auto"
+        onEnded={salir}
+        onError={salir}
+        aria-hidden="true"
+        className="absolute left-1/2 top-1/2 aspect-[9/16] w-[min(100vw,72svh)] max-w-none -translate-x-1/2 -translate-y-1/2 mix-blend-screen"
+      />
+
+      {/* Controles: sonido y entrar */}
+      <div className="pb-safe absolute inset-x-0 bottom-0 flex items-center justify-between gap-4 px-6 py-6 md:px-10 md:py-8">
+        <button
+          type="button"
+          onClick={alternarSonido}
+          aria-pressed={!muted}
+          className={`label inline-flex min-h-[44px] items-center gap-3 transition-colors hover:text-bone ${
+            muted ? 'text-ember' : 'text-bone/60'
+          }`}
         >
-          {t.tagline}
-        </p>
-      </div>
+          <span aria-hidden="true" className="flex h-3 items-end gap-[3px]">
+            {[0.5, 1, 0.7].map((h, i) => (
+              <span
+                key={i}
+                className={`w-px bg-current ${muted ? '' : 'animate-pulse'}`}
+                style={{ height: muted ? '3px' : `${h * 12}px` }}
+              />
+            ))}
+          </span>
+          {muted ? t.introSound : t.introMute}
+        </button>
 
-      {/* Marco inferior: contador + barra + coordenadas */}
-      <div data-preload-frame className="flex items-end justify-between gap-6">
-        <span className="label">
-          <span ref={count} className="tabular-nums text-bone/80">000</span>
-          <span className="text-ember"> / 100</span>
-        </span>
-        <div className="mb-1 h-px w-40 overflow-hidden bg-white/10 sm:w-56 md:w-72" aria-hidden="true">
-          <div
-            data-preload-bar
-            className="h-full w-full origin-left bg-ember"
-            style={{ transform: 'scaleX(0)' }}
-          />
-        </div>
-        <span className="label hidden sm:block">6.2442° N — MED</span>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            salir();
+          }}
+          className="label inline-flex min-h-[44px] items-center gap-2 border border-white/15 px-5 text-bone/70 transition-colors hover:border-ember hover:text-bone"
+        >
+          {t.introSkip} <span aria-hidden="true">→</span>
+        </button>
       </div>
     </div>
   );
