@@ -41,7 +41,6 @@ import { useLang, UI } from '../context/LanguageContext';
 // Orden del recorrido. `focus` es el punto (en % de la imagen) por donde
 // entra la camara: el foco de luz que "abre" el paso al siguiente espacio.
 const SHOTS = [
-  { src: '/proyectos/edificio.jpg', projectId: null, focus: [50, 50] },
   { src: '/proyectos/liuto-01.jpg', projectId: 'liuto', focus: [52, 52] },
   { src: '/proyectos/hecate-01.jpg', projectId: 'luz-de-hecate', focus: [74, 37] },
   // Mas planos (por ahora fuera del recorrido, siguen en el portafolio):
