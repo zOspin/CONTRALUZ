@@ -19,9 +19,14 @@ export default function Studio() {
     { n: '03', title: t.filo3t, text: t.filo3x },
     { n: '04', title: t.filo4t, text: t.filo4x },
   ];
+  // Etapas del documento de marca (FEELING): de la idea a la obra.
+  const PROCESO = [1, 2, 3, 4, 5].map((i) => ({
+    n: String(i).padStart(2, '0'),
+    title: t[`proc${i}t`],
+    text: t[`proc${i}x`],
+  }));
   const CONTACTO = [
     { label: t.dataStudio, value: t.dataStudioV },
-    { label: t.dataFounded, value: t.dataFoundedV },
     { label: t.dataOffice, value: t.dataOfficeV },
     { label: t.dataEmail, value: EMAIL },
   ];
@@ -48,6 +53,15 @@ export default function Studio() {
         stagger: 0.12,
         ease: 'expo.out',
         scrollTrigger: { trigger: '[data-filosofia]', start: 'top 86%', once: true },
+      });
+
+      gsap.from('[data-etapa]', {
+        y: coarse ? 30 : 60,
+        opacity: 0,
+        duration: coarse ? 1.1 : 2,
+        stagger: 0.1,
+        ease: 'expo.out',
+        scrollTrigger: { trigger: '[data-proceso]', start: 'top 86%', once: true },
       });
 
       gsap.from('[data-firma]', {
@@ -101,8 +115,14 @@ export default function Studio() {
             </div>
           </div>
 
-          {/* La firma ocupa la columna derecha (antes: cifras de ejemplo). */}
-          <div className="flex lg:col-span-5 lg:items-end lg:pl-14">
+          {/* Columna derecha: la cita que guia el nombre de la firma y la firma. */}
+          <div className="flex flex-col justify-between gap-14 lg:col-span-5 lg:pl-14">
+            <blockquote data-firma>
+              <p className="font-serif text-2xl italic leading-snug text-bone/90 md:text-3xl">
+                “{t.citaTexto}”
+              </p>
+              <footer className="label mt-5 text-ember">— {t.citaAutor}</footer>
+            </blockquote>
             <div data-firma className="border-l border-ember/40 pl-6">
               <span className="label">{t.signLabel}</span>
               <p className="mt-3 font-serif text-2xl italic text-bone/80">
@@ -138,12 +158,39 @@ export default function Studio() {
           </div>
         </div>
 
+        <div data-proceso className="mt-28 border-t border-white/10 pt-16 md:mt-36">
+          <div className="mb-12 flex items-center gap-5">
+            <span className="label text-ember">{t.procTitle}</span>
+            <span className="h-px flex-1 bg-white/10" />
+            <span className="label hidden sm:block">{t.procSub}</span>
+          </div>
+
+          <ol className="grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-5">
+            {PROCESO.map((p, i) => (
+              <li key={p.n} data-etapa className="group">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-ember tabular-nums">{p.n}</span>
+                  <span
+                    aria-hidden="true"
+                    className={`h-px flex-1 ${i < PROCESO.length - 1 ? 'bg-white/15' : 'bg-ember/50'}`}
+                  />
+                </div>
+                <h3 className="display mt-5 text-[7vw] leading-none text-bone sm:text-[3.4vw] lg:text-[1.5rem]">
+                  {p.title}
+                </h3>
+                <p className="mt-4 text-sm leading-relaxed text-bone/60">{p.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+
         <div
           data-datos
-          className="mt-20 grid grid-cols-2 gap-x-8 gap-y-10 border-t border-white/10 pt-14 md:grid-cols-4"
+          className="mt-20 grid grid-cols-2 gap-x-8 gap-y-10 border-t border-white/10 pt-14 md:grid-cols-3"
         >
           {CONTACTO.map((d) => (
-            <div key={d.label} data-dato>
+            // El correo no cabe en media columna en movil: ocupa la fila.
+            <div key={d.label} data-dato className={d.value === EMAIL ? 'col-span-2 md:col-span-1' : undefined}>
               <span className="label">{d.label}</span>
               <p className="mt-2 font-serif text-lg italic text-bone/80">{d.value}</p>
             </div>

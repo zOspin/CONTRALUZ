@@ -208,7 +208,7 @@ export default function Contact() {
             <div className="pt-6">
               <span className="label">{t.officeLabel}</span>
               <p className="mt-3 font-mono text-xs leading-relaxed text-smoke">
-                Calle 10 # 43-28
+                Urbanización Los Cabos
                 <br />
                 {t.officeCity}
                 <br />

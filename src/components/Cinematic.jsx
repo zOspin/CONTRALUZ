@@ -41,13 +41,15 @@ import { useLang, UI } from '../context/LanguageContext';
 // Orden del recorrido. `focus` es el punto (en % de la imagen) por donde
 // entra la camara: el foco de luz que "abre" el paso al siguiente espacio.
 const SHOTS = [
+  { src: '/proyectos/edificio.jpg', projectId: null, focus: [50, 50] },
   { src: '/proyectos/liuto-01.jpg', projectId: 'liuto', focus: [52, 52] },
-  { src: '/proyectos/liuto-03.jpg', projectId: 'liuto', focus: [47, 48] },
   { src: '/proyectos/hecate-01.jpg', projectId: 'luz-de-hecate', focus: [74, 37] },
-  { src: '/proyectos/hecate-02.jpg', projectId: 'luz-de-hecate', focus: [45, 62] },
-  { src: '/proyectos/spa-01.jpg', projectId: 'spa', focus: [57, 52] },
-  { src: '/proyectos/spa-03.jpg', projectId: 'spa', focus: [49, 47] },
-  { src: '/proyectos/liuto-04.jpg', projectId: 'liuto', focus: [41, 62] },
+  // Mas planos (por ahora fuera del recorrido, siguen en el portafolio):
+  // { src: '/proyectos/liuto-03.jpg', projectId: 'liuto', focus: [47, 48] },
+  // { src: '/proyectos/hecate-02.jpg', projectId: 'luz-de-hecate', focus: [45, 62] },
+  // { src: '/proyectos/spa-01.jpg', projectId: 'spa', focus: [57, 52] },
+  // { src: '/proyectos/spa-03.jpg', projectId: 'spa', focus: [49, 47] },
+  // { src: '/proyectos/liuto-04.jpg', projectId: 'liuto', focus: [41, 62] },
 ];
 
 /** Video del recorrido. null = recorrido con fotos. Ej: { src: '/recorrido/recorrido.mp4', poster: '/proyectos/liuto-01.jpg' } */
@@ -59,13 +61,12 @@ const SEG = 1 / N;
 /**
  * Ritmo del recorrido.
  *
- * TRACK_SCREENS: altura de la pista en svh. Con 7 planos y 700, cada plano
- * dura ~100svh de scroll.
+ * TRACK_SCREENS: altura de la pista en svh, ~100svh por plano (N * 100).
  * ARRIVE: fraccion del plano que dura el cruce entre dos espacios.
  * DIVE: fraccion final del plano en la que la camara acelera hacia el foco.
  * Todo se multiplica por SEG: son fracciones del plano, no de la pista.
  */
-const TRACK_SCREENS = 700;
+const TRACK_SCREENS = N * 100;
 const ARRIVE = 0.14 * SEG;
 const DIVE = 0.38 * SEG;
 
@@ -229,7 +230,7 @@ export default function Cinematic({ lenisRef }) {
   // Indice: un renglon por proyecto, en orden de primera aparicion.
   const index = [];
   SHOTS.forEach((s, i) => {
-    if (!index.some((e) => e.projectId === s.projectId)) {
+    if (s.projectId && !index.some((e) => e.projectId === s.projectId)) {
       index.push({ projectId: s.projectId, first: i });
     }
   });
@@ -247,9 +248,11 @@ export default function Cinematic({ lenisRef }) {
           <CineVideo progress={progress} />
         ) : (
           SHOTS.map((s, i) => {
-            const p = localizeProject(projects.find((p) => p.id === s.projectId), lang);
+            const alt = s.projectId
+              ? localizeProject(projects.find((p) => p.id === s.projectId), lang).alt
+              : t.aperturaAlt;
             return (
-              <CineShot key={s.src} progress={progress} index={i} shot={s} alt={p.alt} calma={prefersReduced} />
+              <CineShot key={s.src} progress={progress} index={i} shot={s} alt={alt} calma={prefersReduced} />
             );
           })
         )}
@@ -261,6 +264,7 @@ export default function Cinematic({ lenisRef }) {
         <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[32%] bg-gradient-to-l from-void/70 to-transparent md:block" />
 
         {SHOTS.map((s, i) => {
+          if (!s.projectId) return null;
           const p = localizeProject(projects.find((p) => p.id === s.projectId), lang);
           return (
             <CineCaption

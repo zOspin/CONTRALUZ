@@ -41,7 +41,7 @@ export default function Home({ lenisRef, scrollTo }) {
     <>
       {/* Titulo de la pagina para lectores de pantalla y buscadores: la
           portada visual es el recorrido, que no tiene un h1 propio. */}
-      <h1 className="sr-only">CONTRA/LUZ — Arquitectura moldeada por la luz</h1>
+      <h1 className="sr-only">CONTRA/LUZ — Arquitectura al descubierto</h1>
       <Cinematic lenisRef={lenisRef} />
       <Projects />
       <Studio />

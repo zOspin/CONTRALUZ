@@ -25,3 +25,6 @@ Open-Generative-AI/
 
 # Playwright (capturas locales)
 ms-playwright/
+
+# Renders originales (fuente de scripts/optimize-images.mjs); no se publican
+originales/
